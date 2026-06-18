@@ -10,7 +10,8 @@ if [[ ! -f "./humanoidverse/eval_agent.py" ]]; then
 fi
 
 # PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/cyh/.global_envs/humanoidverse/bin/python"
-PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
+# PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
+PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python"
 export XLOCALEDIR=/usr/share/X11/locale
 
 CMD=(

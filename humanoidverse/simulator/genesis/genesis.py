@@ -72,6 +72,11 @@ class Genesis(BaseSimulator):
             show_viewer=not self.headless,
             show_FPS=False,
         )
+        if self.headless:
+            # Genesis still creates an offscreen rasterizer when the viewer is hidden.
+            # Training does not need it, and many compute nodes lack EGL/OpenGL.
+            self.scene.visualizer._rasterizer = None
+            self.scene.visualizer._renderer = None
 
         for solver in self.scene.sim.solvers:
             if not isinstance(solver, RigidSolver):

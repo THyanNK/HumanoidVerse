@@ -4,32 +4,9 @@ set -euo pipefail
 HV_DIR="${HUMANOIDVERSE_REPO:-$(pwd)}"
 cd "$HV_DIR"
 
-if [[ ! -f "humanoidverse/train_agent.py" ]]; then
-  echo "HumanoidVerse repo not found: $HV_DIR" >&2
-  echo "Set HUMANOIDVERSE_REPO if the repository moved." >&2
-  exit 1
-fi
-
-if [[ -z "${PYTHON_BIN:-}" ]]; then
-  if [[ -x "$HV_DIR/hgen/bin/python" ]]; then
-    PYTHON_BIN="$HV_DIR/hgen/bin/python"
-  else
-    PYTHON_BIN="$(command -v python3 || command -v python || true)"
-  fi
-fi
-
-if [[ "$PYTHON_BIN" == "~/"* ]]; then
-  PYTHON_BIN="$HOME/${PYTHON_BIN#~/}"
-elif [[ "$PYTHON_BIN" != /* && "$PYTHON_BIN" == */* ]]; then
-  PYTHON_BIN="$HV_DIR/$PYTHON_BIN"
-fi
-
-if [[ -z "$PYTHON_BIN" || ! -x "$PYTHON_BIN" ]]; then
-  echo "Python interpreter not found or not executable: ${PYTHON_BIN:-<empty>}" >&2
-  echo "Set PYTHON_BIN to an absolute interpreter path, for example:" >&2
-  echo "  PYTHON_BIN=\"\$HOME/czt/HumanoidVerse/hgen/bin/python\" bash train_genesis_baseline.sh" >&2
-  exit 1
-fi
+# PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/cyh/.global_envs/humanoidverse/bin/python"
+# PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
+PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python"
 
 PROJECT_NAME=HumanoidLocomotion
 EXPERIMENT_NAME=H110dof_loco_Genesis
