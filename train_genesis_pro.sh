@@ -27,13 +27,13 @@ fi
 if [[ -z "$PYTHON_BIN" || ! -x "$PYTHON_BIN" ]]; then
   echo "Python interpreter not found or not executable: ${PYTHON_BIN:-<empty>}" >&2
   echo "Set PYTHON_BIN to an absolute interpreter path, for example:" >&2
-  echo "  PYTHON_BIN=\"\$HOME/czt/HumanoidVerse/hgen/bin/python\" bash train_genesis_baseline.sh" >&2
+  echo "  PYTHON_BIN=\"\$HOME/czt/HumanoidVerse/hgen/bin/python\" bash train_genesis_pro.sh" >&2
   exit 1
 fi
 
 PROJECT_NAME=HumanoidLocomotion
-EXPERIMENT_NAME=H110dof_loco_Genesis
-NUM_ENVS=4096
+EXPERIMENT_NAME=H1Pro_upperbody_loco_Genesis
+NUM_ENVS="${NUM_ENVS:-4096}"
 HEADLESS=True
 EXTRA_ARGS=()
 
@@ -52,10 +52,10 @@ done
 CMD=(
   "$PYTHON_BIN" humanoidverse/train_agent.py
   +simulator=genesis
-  +exp=locomotion
+  +exp=locomotion_pro
   +domain_rand=NO_domain_rand
-  +rewards=loco/reward_h1_locomotion
-  +robot=h1/h1_10dof
+  +rewards=loco/reward_h1_locomotion_upper_body
+  +robot=h1/h1
   +terrain=terrain_locomotion_plane
   +obs=loco/leggedloco_obs_singlestep_withlinvel
   num_envs="$NUM_ENVS"

@@ -1,0 +1,22 @@
+# @package _global_
+
+defaults:
+  - reward_h1_locomotion
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyPro
+  set_reward_date: 20260618
+  reward_scales:
+      upperbody_action_rate: -0.02
+      upperbody_dof_acc: -5.0e-8
+      upperbody_torso_deviation: -1.0
+      upperbody_arm_posture: -0.25
+      upperbody_arm_symmetry: -0.25
+      upperbody_arm_leg_phase: -0.5
+
+  upper_body:
+    torso_deviation_deadband: 0.12
+    arm_posture_deadband: 0.35
+    arm_leg_phase_gain: 0.5
+    arm_leg_phase_min_command_speed: 0.15
