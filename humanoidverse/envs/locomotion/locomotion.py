@@ -23,8 +23,10 @@ class LeggedRobotLocomotion(LeggedRobotBase):
         super().__init__(config, device)
         self.init_done = True
         # import ipdb; ipdb.set_trace()
-        if config.robot.motion.get("hips_link", None):
-            self.hips_dof_id = [self.simulator._body_list.index(link) - 1 for link in config.robot.motion.hips_link] # Yuanhang: -1 for the base link (pelvis)
+        motion_cfg = config.robot.get("motion", {})
+        if motion_cfg.get("hips_link", None):
+            body_list = getattr(self.simulator, "_body_list", self.body_names)
+            self.hips_dof_id = [body_list.index(link) - 1 for link in motion_cfg.hips_link] # Yuanhang: -1 for the base link (pelvis)
 
     def _init_buffers(self):
         super()._init_buffers()
