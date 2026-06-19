@@ -33,6 +33,16 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         self.left_hip_pitch_index = idx("left_hip_pitch_joint")
         self.right_hip_pitch_index = idx("right_hip_pitch_joint")
 
+        self.shoulder_pitch_indices = torch.as_tensor(
+            [self.left_shoulder_pitch_index, self.right_shoulder_pitch_index],
+            dtype=torch.long,
+            device=self.device,
+        )
+        self.elbow_indices = torch.as_tensor(
+            [self.left_elbow_index, self.right_elbow_index],
+            dtype=torch.long,
+            device=self.device,
+        )
         self.arm_posture_indices = torch.as_tensor(
             [
                 self.left_shoulder_roll_index,
@@ -76,6 +86,16 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
 
     def _centered_dof_pos(self, index):
         return self.simulator.dof_pos[:, index] - self.default_dof_pos[:, index]
+
+    def _centered_dof_pos_for_indices(self, indices):
+        return self.simulator.dof_pos[:, indices] - self.default_dof_pos[:, indices]
+
+    def _command_speed(self):
+        return torch.norm(self.commands[:, :2], dim=1)
+
+    def _moving_command_mask(self):
+        min_speed = self._upper_body_reward_cfg("arm_leg_phase_min_command_speed", 0.15)
+        return (self._command_speed() > min_speed).float()
 
     def _reward_upperbody_locked_dof_pos(self):
         if self.locked_upper_body_reward_indices.numel() == 0:
@@ -137,5 +157,59 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         target_right_arm = gain * left_hip_pitch
         phase_error = torch.square(left_arm_pitch - target_left_arm) + torch.square(right_arm_pitch - target_right_arm)
 
-        command_speed = torch.norm(self.commands[:, :2], dim=1)
-        return phase_error * (command_speed > min_speed).float()
+        return phase_error * (self._command_speed() > min_speed).float()
+
+    def _reward_upperbody_arm_leg_velocity_phase(self):
+        gain = self._upper_body_reward_cfg(
+            "arm_leg_velocity_phase_gain",
+            self._upper_body_reward_cfg("arm_leg_phase_gain", 0.5),
+        )
+
+        left_arm_vel = self.simulator.dof_vel[:, self.left_shoulder_pitch_index]
+        right_arm_vel = self.simulator.dof_vel[:, self.right_shoulder_pitch_index]
+        left_hip_vel = self.simulator.dof_vel[:, self.left_hip_pitch_index]
+        right_hip_vel = self.simulator.dof_vel[:, self.right_hip_pitch_index]
+
+        phase_error = (
+            torch.square(left_arm_vel - gain * right_hip_vel)
+            + torch.square(right_arm_vel - gain * left_hip_vel)
+        )
+        return phase_error * self._moving_command_mask()
+
+    def _reward_upperbody_arm_velocity_opposition(self):
+        left_arm_vel = self.simulator.dof_vel[:, self.left_shoulder_pitch_index]
+        right_arm_vel = self.simulator.dof_vel[:, self.right_shoulder_pitch_index]
+        return torch.square(left_arm_vel + right_arm_vel) * self._moving_command_mask()
+
+    def _reward_upperbody_shoulder_pitch_limit(self):
+        soft_limit = self._upper_body_reward_cfg("shoulder_pitch_soft_limit", 0.65)
+        shoulder_pitch = torch.abs(
+            self._centered_dof_pos_for_indices(self.shoulder_pitch_indices)
+        )
+        excess = torch.clip(shoulder_pitch - soft_limit, min=0.0)
+        return torch.sum(torch.square(excess), dim=1)
+
+    def _reward_upperbody_elbow_posture(self):
+        target = self._upper_body_reward_cfg("elbow_flexion_target", 0.20)
+        deadband = self._upper_body_reward_cfg("elbow_flexion_deadband", 0.15)
+        elbow_pos = self.simulator.dof_pos[:, self.elbow_indices]
+        deviation = torch.abs(elbow_pos - target)
+        return torch.sum(torch.square(torch.clip(deviation - deadband, min=0.0)), dim=1)
+
+    def _reward_upperbody_stationary_arm_posture(self):
+        max_speed = self._upper_body_reward_cfg("stationary_arm_max_command_speed", 0.15)
+        stationary_mask = (self._command_speed() <= max_speed).float()
+
+        shoulder_pitch = self._centered_dof_pos_for_indices(self.shoulder_pitch_indices)
+        elbow_deviation = (
+            self.simulator.dof_pos[:, self.elbow_indices]
+            - self.default_dof_pos[:, self.elbow_indices]
+        )
+        posture_error = (
+            torch.sum(torch.square(shoulder_pitch), dim=1)
+            + 0.5 * torch.sum(torch.square(elbow_deviation), dim=1)
+        )
+        return posture_error * stationary_mask
+
+    def _reward_upperbody_torques(self):
+        return torch.sum(torch.square(self.torques[:, self.upper_body_reward_indices]), dim=1)
