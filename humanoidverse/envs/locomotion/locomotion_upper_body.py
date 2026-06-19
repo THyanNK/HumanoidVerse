@@ -1,5 +1,6 @@
 import torch
 
+from humanoidverse.utils.torch_utils import quat_rotate_inverse
 from humanoidverse.envs.locomotion.locomotion import LeggedRobotLocomotion
 
 
@@ -49,6 +50,14 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
                 self.left_shoulder_yaw_index,
                 self.right_shoulder_roll_index,
                 self.right_shoulder_yaw_index,
+            ],
+            dtype=torch.long,
+            device=self.device,
+        )
+        self.arm_endpoint_indices = torch.as_tensor(
+            [
+                self.simulator.find_rigid_body_indice("left_elbow_link"),
+                self.simulator.find_rigid_body_indice("right_elbow_link"),
             ],
             dtype=torch.long,
             device=self.device,
@@ -107,6 +116,28 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         min_speed = self._upper_body_reward_cfg("arm_leg_phase_min_command_speed", 0.15)
         return (self._command_speed() > min_speed).float()
 
+    def _body_vectors_in_base(self, vectors):
+        num_bodies = vectors.shape[1]
+        base_quat = self.base_quat.unsqueeze(1).expand(-1, num_bodies, -1)
+        return quat_rotate_inverse(
+            base_quat.reshape(-1, 4),
+            vectors.reshape(-1, 3),
+        ).reshape(self.num_envs, num_bodies, 3)
+
+    def _arm_endpoint_pos_in_base(self):
+        root_pos = self.simulator.robot_root_states[:, :3].unsqueeze(1)
+        endpoint_pos = self.simulator._rigid_body_pos[:, self.arm_endpoint_indices]
+        return self._body_vectors_in_base(endpoint_pos - root_pos)
+
+    def _arm_endpoint_vel_in_base(self):
+        root_vel = self.simulator.robot_root_states[:, 7:10].unsqueeze(1)
+        endpoint_vel = self.simulator._rigid_body_vel[:, self.arm_endpoint_indices]
+        return self._body_vectors_in_base(endpoint_vel - root_vel)
+
+    def _arm_endpoint_lateral_targets(self):
+        targets = self._upper_body_reward_cfg("arm_endpoint_lateral_targets", [0.22, -0.22])
+        return torch.as_tensor(targets, dtype=torch.float, device=self.device).unsqueeze(0)
+
     def _reward_upperbody_locked_dof_pos(self):
         if self.locked_upper_body_reward_indices.numel() == 0:
             return torch.zeros(self.num_envs, dtype=torch.float, device=self.device)
@@ -160,6 +191,17 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             self._centered_dof_pos_for_indices(self.arm_lateral_indices)
         )
         return torch.sum(torch.square(torch.clip(lateral_deviation - deadband, min=0.0)), dim=1)
+
+    def _reward_upperbody_arm_endpoint_lateral_pos(self):
+        deadband = self._upper_body_reward_cfg("arm_endpoint_lateral_deadband", 0.035)
+        endpoint_y = self._arm_endpoint_pos_in_base()[:, :, 1]
+        lateral_error = torch.abs(endpoint_y - self._arm_endpoint_lateral_targets())
+        return torch.sum(torch.square(torch.clip(lateral_error - deadband, min=0.0)), dim=1)
+
+    def _reward_upperbody_arm_endpoint_lateral_vel(self):
+        deadband = self._upper_body_reward_cfg("arm_endpoint_lateral_vel_deadband", 0.08)
+        endpoint_y_vel = torch.abs(self._arm_endpoint_vel_in_base()[:, :, 1])
+        return torch.sum(torch.square(torch.clip(endpoint_y_vel - deadband, min=0.0)), dim=1)
 
     def _reward_upperbody_arm_leg_phase(self):
         gain = self._upper_body_reward_cfg("arm_leg_phase_gain", 0.5)
