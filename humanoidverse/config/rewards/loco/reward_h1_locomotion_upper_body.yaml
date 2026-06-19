@@ -17,6 +17,7 @@ rewards:
       upperbody_elbow_posture: -0.15
       upperbody_stationary_arm_posture: -0.60
       upperbody_arm_symmetry: -0.10
+      upperbody_arm_lateral_deviation: -1.00
       upperbody_arm_velocity_opposition: -0.02
       upperbody_arm_leg_phase: -0.20
       upperbody_arm_leg_velocity_phase: -0.01
@@ -24,6 +25,7 @@ rewards:
   upper_body:
     torso_deviation_deadband: 0.12
     arm_posture_deadband: 0.35
+    arm_lateral_deadband: 0.08
     shoulder_pitch_soft_limit: 0.65
     elbow_flexion_target: 0.20
     elbow_flexion_deadband: 0.18

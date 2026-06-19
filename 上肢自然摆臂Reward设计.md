@@ -28,7 +28,8 @@
 - `upperbody_shoulder_pitch_limit`：允许肩 pitch 前后摆，但限制最大摆幅。
 - `upperbody_elbow_posture`：stage3/单阶段中让 elbow 保持轻微自然弯曲。
 - `upperbody_stationary_arm_posture`：命令速度很小时，上肢回到默认姿态，避免站立时手臂乱晃。
-- `upperbody_arm_symmetry`：左右肩 pitch 近似反相，roll/yaw 保持左右平衡。
+- `upperbody_arm_symmetry`：左右肩 pitch 近似反相，roll/yaw 按左右镜像符号保持平衡。
+- `upperbody_arm_lateral_deviation`：单独压制 shoulder roll/yaw 横向摆动，让主要摆臂发生在 shoulder pitch 的前后方向。
 - `upperbody_arm_velocity_opposition`：左右肩 pitch 速度反相，抑制同向甩臂。
 - `upperbody_arm_leg_phase`：肩 pitch 跟对侧髋 pitch 建立角度相位关系。
 - `upperbody_arm_leg_velocity_phase`：肩 pitch 速度跟对侧髋 pitch 速度建立相位关系，让摆臂不是静态摆姿势。
@@ -83,6 +84,10 @@ bash train_genesis_pro.sh
 配置：`humanoidverse/config/rewards/loco/reward_h1_locomotion_upper_body.yaml`
 
 单阶段配置已经包含完整上肢 reward，但如果训练不稳定，优先使用三阶段路线。
+
+## 为什么会出现左右摆臂
+
+H1 的 `shoulder_pitch_joint` 是前后摆动通道；`shoulder_roll_joint` 和 `shoulder_yaw_joint` 更容易造成横向摆动。之前 stage3 只锁 torso，roll/yaw 放开，同时 `arm_posture_deadband` 比较宽；另外左右 roll/yaw 的镜像对称项用了同号约束，和 H1 左右肩 roll/yaw 的镜像限位不匹配。现在已经改成 roll/yaw 反号镜像，并加入 `upperbody_arm_lateral_deviation` 抑制横向摆动。
 
 ## 调参建议
 

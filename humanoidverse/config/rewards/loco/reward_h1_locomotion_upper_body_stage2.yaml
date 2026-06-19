@@ -29,6 +29,7 @@ rewards:
       upperbody_shoulder_pitch_limit: -0.70
       upperbody_stationary_arm_posture: -0.40
       upperbody_arm_symmetry: -0.05
+      upperbody_arm_lateral_deviation: -0.80
       upperbody_arm_velocity_opposition: -0.01
       upperbody_arm_leg_phase: 0.0
       upperbody_arm_leg_velocity_phase: 0.0
@@ -47,6 +48,7 @@ rewards:
     locked_dof_deadband: 0.05
     torso_deviation_deadband: 0.10
     arm_posture_deadband: 0.30
+    arm_lateral_deadband: 0.06
     shoulder_pitch_soft_limit: 0.55
     stationary_arm_max_command_speed: 0.15
     arm_leg_phase_gain: 0.0

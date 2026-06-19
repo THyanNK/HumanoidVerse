@@ -43,6 +43,16 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             dtype=torch.long,
             device=self.device,
         )
+        self.arm_lateral_indices = torch.as_tensor(
+            [
+                self.left_shoulder_roll_index,
+                self.left_shoulder_yaw_index,
+                self.right_shoulder_roll_index,
+                self.right_shoulder_yaw_index,
+            ],
+            dtype=torch.long,
+            device=self.device,
+        )
         self.arm_posture_indices = torch.as_tensor(
             [
                 self.left_shoulder_roll_index,
@@ -141,8 +151,15 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         right_yaw = self._centered_dof_pos(self.right_shoulder_yaw_index)
 
         pitch_opposition = torch.square(left_pitch + right_pitch)
-        lateral_balance = torch.square(left_roll - right_roll) + torch.square(left_yaw - right_yaw)
+        lateral_balance = torch.square(left_roll + right_roll) + torch.square(left_yaw + right_yaw)
         return pitch_opposition + 0.25 * lateral_balance
+
+    def _reward_upperbody_arm_lateral_deviation(self):
+        deadband = self._upper_body_reward_cfg("arm_lateral_deadband", 0.08)
+        lateral_deviation = torch.abs(
+            self._centered_dof_pos_for_indices(self.arm_lateral_indices)
+        )
+        return torch.sum(torch.square(torch.clip(lateral_deviation - deadband, min=0.0)), dim=1)
 
     def _reward_upperbody_arm_leg_phase(self):
         gain = self._upper_body_reward_cfg("arm_leg_phase_gain", 0.5)
