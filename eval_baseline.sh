@@ -2,23 +2,29 @@
 set -euo pipefail
 
 HV_DIR="${HUMANOIDVERSE_REPO:-$(pwd)}"
+cd "$HV_DIR"
 
-if [[ ! -f "./humanoidverse/eval_agent.py" ]]; then
+if [[ ! -f humanoidverse/eval_agent.py ]]; then
   echo "HumanoidVerse repo not found: $HV_DIR" >&2
-  echo "Set HUMANOIDVERSE_REPO if the repository moved." >&2
   exit 1
 fi
 
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 <epoch> [extra eval args...]"
+  echo "Example: $0 1000"
+  exit 1
+fi
+
+epoch="$1"
+shift
+
 # PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/cyh/.global_envs/humanoidverse/bin/python"
-# PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
-PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python"
+PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
+# PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python"
+
 export XLOCALEDIR=/usr/share/X11/locale
 
-CMD=(
-  "$PYTHON_BIN" humanoidverse/eval_agent.py 
-  +checkpoint=logs/HumanoidLocomotion/20260617_160240-H110dof_loco_Genesis-locomotion-h1_10dof/model_10000.pt
-  # +headless=True
+exec "$PYTHON_BIN" humanoidverse/eval_agent.py \
+  +checkpoint="logs/HumanoidLocomotion/h1_10dof/model_${epoch}.pt" \
+  eval_name=H1Pro_upperbody_loco_Genesis \
   "$@"
-)
-
-exec "${CMD[@]}"

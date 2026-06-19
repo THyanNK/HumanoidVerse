@@ -9,20 +9,22 @@ if [[ ! -f humanoidverse/eval_agent.py ]]; then
   exit 1
 fi
 
-# PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/cyh/.global_envs/humanoidverse/bin/python"
-# PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
-PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python"
-
-CHECKPOINT="${CHECKPOINT:-${1:-}}"
-if [[ $# -gt 0 && "$1" == "$CHECKPOINT" ]]; then
-  shift
-fi
-if [[ -z "$CHECKPOINT" ]]; then
-  echo "Usage: bash eval_pro.sh <checkpoint> [hydra_overrides...]" >&2
+if [[ $# -lt 1 ]]; then
+  echo "Usage: $0 <epoch> [extra eval args...]"
+  echo "Example: $0 1000"
   exit 1
 fi
 
+epoch="$1"
+shift
+
+# PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/cyh/.global_envs/humanoidverse/bin/python"
+PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
+# PYTHON_BIN="/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python"
+
+export XLOCALEDIR=/usr/share/X11/locale
+
 exec "$PYTHON_BIN" humanoidverse/eval_agent.py \
-  +checkpoint="$CHECKPOINT" \
+  +checkpoint="logs/HumanoidLocomotion/h1_upper_body/model_${epoch}.pt" \
   eval_name=H1Pro_upperbody_loco_Genesis \
   "$@"
