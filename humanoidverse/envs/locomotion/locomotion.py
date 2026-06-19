@@ -99,6 +99,18 @@ class LeggedRobotLocomotion(LeggedRobotBase):
 
     ########################### PENALTY REWARDS ###########################
 
+    def _reward_tracking_lin_vel_x(self):
+        lin_vel_error = torch.square(self.commands[:, 0] - self.base_lin_vel[:, 0])
+        return torch.exp(-lin_vel_error / self.config.rewards.reward_tracking_sigma.lin_vel)
+
+    def _reward_penalty_low_forward_speed(self):
+        command_x = torch.clamp(self.commands[:, 0], min=0.0)
+        speed_deficit = torch.clamp(command_x - self.base_lin_vel[:, 0], min=0.0)
+        return torch.square(speed_deficit) * (command_x > 0.1).float()
+
+    def _reward_penalty_backward_vel(self):
+        return torch.square(torch.clamp(-self.base_lin_vel[:, 0], min=0.0))
+
     def _reward_penalty_lin_vel_z(self):
         # Penalize z axis base linear velocity
         return torch.square(self.base_lin_vel[:, 2])

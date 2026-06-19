@@ -747,8 +747,10 @@ class LeggedRobotBase(BaseTask):
             self.simulator.dof_pos[env_ids] = target_state[..., 0]
             self.simulator.dof_vel[env_ids] = target_state[..., 1]
         else:
-            self.simulator.dof_pos[env_ids] = self.default_dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=str(self.device))
-            # self.simulator.dof_pos[env_ids] = self.default_dof_pos
+            if getattr(self, "is_evaluating", False):
+                self.simulator.dof_pos[env_ids] = self.default_dof_pos
+            else:
+                self.simulator.dof_pos[env_ids] = self.default_dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=str(self.device))
             # import ipdb; ipdb.set_trace()
             
             self.simulator.dof_vel[env_ids] = 0.
@@ -771,16 +773,15 @@ class LeggedRobotBase(BaseTask):
 
         else:
             # base position
-            if self.custom_origins:
-                self.simulator.robot_root_states[env_ids] = self.base_init_state
-                self.simulator.robot_root_states[env_ids, :3] += self.env_origins[env_ids]
+            self.simulator.robot_root_states[env_ids] = self.base_init_state
+            self.simulator.robot_root_states[env_ids, :3] += self.env_origins[env_ids]
+            if self.custom_origins and not getattr(self, "is_evaluating", False):
                 self.simulator.robot_root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=str(self.device)) # xy position within 1m of the center
-            else:
-                self.simulator.robot_root_states[env_ids] = self.base_init_state
-                self.simulator.robot_root_states[env_ids, :3] += self.env_origins[env_ids]
             # base velocities
-            
-            self.simulator.robot_root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=str(self.device)) # [7:10]: lin vel, [10:13]: ang vel
+            if getattr(self, "is_evaluating", False):
+                self.simulator.robot_root_states[env_ids, 7:13] = 0.
+            else:
+                self.simulator.robot_root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=str(self.device)) # [7:10]: lin vel, [10:13]: ang vel
 
 
     def _plot_domain_rand_params(self):

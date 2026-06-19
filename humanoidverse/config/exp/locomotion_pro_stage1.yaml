@@ -14,7 +14,7 @@ algo:
 env:
   config:
     locomotion_command_ranges:
-      lin_vel_x: [0.3, 0.8]
+      lin_vel_x: [0.0, 0.8]
       lin_vel_y: [0.0, 0.0]
       ang_vel_yaw: [0.0, 0.0]
       heading: [0.0, 0.0]
