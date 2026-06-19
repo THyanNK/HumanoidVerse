@@ -607,7 +607,11 @@ class PPO(BaseAlgo):
 
     def _pre_evaluate_policy(self, reset_env=True):
         self._eval_mode()
-        self.env.set_is_evaluating()
+        eval_command = self.config.get("eval_command", None)
+        if eval_command is None:
+            self.env.set_is_evaluating()
+        else:
+            self.env.set_is_evaluating(command=eval_command)
         if reset_env:
             _ = self.env.reset_all()
 

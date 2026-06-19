@@ -13,10 +13,10 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         self._setup_upper_body_reward_indices()
 
     def _setup_upper_body_reward_indices(self):
-        name_to_index = {name: index for index, name in enumerate(self.dof_names)}
+        self.name_to_dof_index = {name: index for index, name in enumerate(self.dof_names)}
 
         def idx(name):
-            return name_to_index[name]
+            return self.name_to_dof_index[name]
 
         self.upper_body_reward_indices = torch.as_tensor(
             self.upper_dof_indices, dtype=torch.long, device=self.device
@@ -45,13 +45,48 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             dtype=torch.long,
             device=self.device,
         )
+        self.locked_upper_body_action_indices = self._dof_indices_from_reward_cfg(
+            "locked_action_dof_names"
+        )
+        self.locked_upper_body_reward_indices = self._dof_indices_from_reward_cfg(
+            "locked_reward_dof_names"
+        )
 
     def _upper_body_reward_cfg(self, name, default):
         cfg = self.config.rewards.get("upper_body", {})
         return cfg.get(name, default)
 
+    def _dof_indices_from_reward_cfg(self, cfg_name):
+        names = list(self._upper_body_reward_cfg(cfg_name, []))
+        missing = [name for name in names if name not in self.name_to_dof_index]
+        if missing:
+            raise ValueError(f"Unknown DOF names in rewards.upper_body.{cfg_name}: {missing}")
+        return torch.as_tensor(
+            [self.name_to_dof_index[name] for name in names],
+            dtype=torch.long,
+            device=self.device,
+        )
+
+    def _pre_physics_step(self, actions):
+        super()._pre_physics_step(actions)
+        if self.locked_upper_body_action_indices.numel() == 0:
+            return
+        self.actions[:, self.locked_upper_body_action_indices] = 0.0
+        self.actions_after_delay[:, self.locked_upper_body_action_indices] = 0.0
+
     def _centered_dof_pos(self, index):
         return self.simulator.dof_pos[:, index] - self.default_dof_pos[:, index]
+
+    def _reward_upperbody_locked_dof_pos(self):
+        if self.locked_upper_body_reward_indices.numel() == 0:
+            return torch.zeros(self.num_envs, dtype=torch.float, device=self.device)
+
+        deadband = self._upper_body_reward_cfg("locked_dof_deadband", 0.03)
+        deviation = torch.abs(
+            self.simulator.dof_pos[:, self.locked_upper_body_reward_indices]
+            - self.default_dof_pos[:, self.locked_upper_body_reward_indices]
+        )
+        return torch.sum(torch.square(torch.clip(deviation - deadband, min=0.0)), dim=1)
 
     def _reward_upperbody_action_rate(self):
         action_delta = self.actions[:, self.upper_body_reward_indices] - self.last_actions[:, self.upper_body_reward_indices]

@@ -28,6 +28,7 @@ algo:
     num_learning_iterations: 100000
     init_at_random_ep_len: True
     eval_callbacks: null
+    eval_command: null
 
     module_dict:
       actor:

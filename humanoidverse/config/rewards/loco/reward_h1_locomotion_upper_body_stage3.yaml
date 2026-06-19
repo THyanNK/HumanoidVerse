@@ -1,0 +1,48 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage3ArmSwing
+  set_reward_date: 20260619
+  reward_scales:
+      penalty_slippage: -0.8
+      feet_heading_alignment: -0.2
+      upperbody_locked_dof_pos: -2.0
+      upperbody_action_rate: -0.02
+      upperbody_dof_acc: -5.0e-8
+      upperbody_torso_deviation: -1.5
+      upperbody_arm_posture: -0.25
+      upperbody_arm_symmetry: -0.10
+      upperbody_arm_leg_phase: -0.10
+
+  upper_body:
+    locked_action_dof_names: ["torso_joint"]
+    locked_reward_dof_names: ["torso_joint"]
+    locked_dof_deadband: 0.05
+    torso_deviation_deadband: 0.10
+    arm_posture_deadband: 0.35
+    arm_leg_phase_gain: 0.35
+    arm_leg_phase_min_command_speed: 0.20
+
+  reward_penalty_reward_names : [
+    "penalty_torques",
+    "penalty_dof_acc",
+    "penalty_dof_vel",
+    "penalty_action_rate",
+    "penalty_feet_contact_forces",
+    "penalty_stumble",
+    "penalty_slippage",
+    "penalty_feet_ori",
+    "penalty_in_the_air",
+    "limits_dof_pos",
+    "limits_dof_vel",
+    "limits_torque",
+    "termination",
+    "feet_air_time",
+    "feet_max_height_for_this_air",
+    "upperbody_action_rate",
+    "upperbody_dof_acc"
+  ]
