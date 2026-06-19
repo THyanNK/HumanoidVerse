@@ -97,6 +97,22 @@ class LeggedRobotLocomotion(LeggedRobotBase):
         ang_vel_error = torch.square(self.commands[:, 2] - self.base_ang_vel[:, 2])
         return torch.exp(-ang_vel_error/self.config.rewards.reward_tracking_sigma.ang_vel)
 
+    def _target_heading_error(self):
+        forward = quat_apply(self.base_quat, self.forward_vec)
+        heading = torch.atan2(forward[:, 1], forward[:, 0])
+        return wrap_to_pi(self.commands[:, 3] - heading)
+
+    def _reward_tracking_heading(self):
+        heading_error = torch.square(self._target_heading_error())
+        return torch.exp(-heading_error / self.config.rewards.reward_tracking_sigma.ang_vel)
+
+    def _reward_penalty_heading_error(self):
+        command_speed = torch.norm(self.commands[:, :2], dim=1)
+        return torch.square(self._target_heading_error()) * (command_speed > 0.1).float()
+
+    def _reward_penalty_lateral_vel(self):
+        return torch.square(self.base_lin_vel[:, 1])
+
     ########################### PENALTY REWARDS ###########################
 
     def _reward_tracking_lin_vel_x(self):

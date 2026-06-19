@@ -10,11 +10,14 @@ rewards:
   reward_scales:
       tracking_lin_vel: 3.0
       tracking_lin_vel_x: 2.0
-      tracking_ang_vel: 0.3
+      tracking_ang_vel: 0.5
+      tracking_heading: 1.0
       feet_air_time: 0.3
       termination: -100.0
       penalty_low_forward_speed: -2.0
       penalty_backward_vel: -1.0
+      penalty_heading_error: -2.0
+      penalty_lateral_vel: -1.0
       penalty_slippage: -0.5
       feet_heading_alignment: -0.1
       upperbody_locked_dof_pos: -4.0
@@ -58,6 +61,8 @@ rewards:
     "termination",
     "penalty_low_forward_speed",
     "penalty_backward_vel",
+    "penalty_heading_error",
+    "penalty_lateral_vel",
     "feet_air_time",
     "feet_max_height_for_this_air",
     "upperbody_action_rate",
