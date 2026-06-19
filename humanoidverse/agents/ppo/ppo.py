@@ -581,7 +581,7 @@ class PPO(BaseAlgo):
     @torch.no_grad()
     def evaluate_policy(self):
         self._create_eval_callbacks()
-        self._pre_evaluate_policy()
+        self._pre_evaluate_policy(reset_env=False)
         actor_state = self._create_actor_state()
         step = 0
         self.eval_policy = self._get_inference_policy()

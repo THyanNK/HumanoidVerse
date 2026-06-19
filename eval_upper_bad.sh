@@ -25,6 +25,6 @@ PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
 export XLOCALEDIR=/usr/share/X11/locale
 
 exec "$PYTHON_BIN" humanoidverse/eval_agent.py \
-  +checkpoint="logs/HumanoidLocomotion/h1_10dof/model_${epoch}.pt" \
-  eval_name=H1_baseline \
+  +checkpoint="logs/HumanoidLocomotion/h1_upper_body/model_${epoch}.pt" \
+  eval_name=H1_upperbody_bad \
   "$@"

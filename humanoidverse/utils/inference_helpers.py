@@ -40,7 +40,7 @@ def export_policy_as_onnx(inference_model, path, exported_policy_name, example_o
             verbose=True,
             input_names=["actor_obs"],  # Specify the input names
             output_names=["action"],       # Name the output
-            opset_version=13           # Specify the opset version, if needed
+            opset_version=18           # Specify the opset version, if needed
         )
 
 def export_policy_and_estimator_as_onnx(inference_model, path, exported_policy_name, example_obs_dict):
@@ -81,5 +81,5 @@ def export_policy_and_estimator_as_onnx(inference_model, path, exported_policy_n
             verbose=True,
             input_names=["actor_obs", "long_history_for_estimator"],  # Specify the input names
             output_names=["action", "left_hand_force_estimator_output", "right_hand_force_estimator_output"],       # Name the output
-            opset_version=13           # Specify the opset version, if needed
+            opset_version=18           # Specify the opset version, if needed
         )

@@ -73,10 +73,18 @@ class LeggedRobotLocomotion(LeggedRobotBase):
 
     def set_is_evaluating(self, command=None):
         super().set_is_evaluating()
-        self.commands = torch.zeros((self.num_envs, 4), dtype=torch.float32, device=self.device)
+        self.commands.zero_()
         if command is not None:
-            self.commands[:, :3] = torch.tensor(command).to(self.device)  # only set the first 3 commands
-
+            if isinstance(command, torch.Tensor):
+                command_tensor = command.to(dtype=self.commands.dtype, device=self.device).flatten()
+            else:
+                command_tensor = torch.as_tensor(list(command), dtype=self.commands.dtype, device=self.device).flatten()
+            if command_tensor.numel() < 3:
+                raise ValueError("Evaluation command must contain at least [lin_vel_x, lin_vel_y, yaw].")
+            self.commands[:, :3] = command_tensor[:3]
+            if command_tensor.numel() >= 4:
+                self.commands[:, 3] = command_tensor[3]
+        self.simulator.commands = self.commands
     ########################### TRACKING REWARDS ###########################
 
     def _reward_tracking_lin_vel(self):

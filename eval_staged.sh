@@ -10,7 +10,7 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
-PYTHON_BIN="${PYTHON_BIN:-/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python}"
+PYTHON_BIN="/home/agilex/czt/HumanoidVerse/hgen/bin/python"
 CHECKPOINT="$1"
 shift
 
@@ -19,5 +19,7 @@ export XLOCALEDIR="${XLOCALEDIR:-/usr/share/X11/locale}"
 exec "$PYTHON_BIN" humanoidverse/eval_agent.py \
   +checkpoint="$CHECKPOINT" \
   eval_name="${EVAL_NAME:-H1Pro_staged_eval_Genesis}" \
+  ++export_onnx=False \
+  ++export_policy=False \
   "++algo.config.eval_command=${EVAL_COMMAND:-[0.6,0.0,0.0]}" \
   "$@"
