@@ -33,6 +33,8 @@ rewards:
       upperbody_arm_lateral_deviation: -1.20
       upperbody_arm_endpoint_lateral_pos: -8.0
       upperbody_arm_endpoint_lateral_vel: -0.25
+      upperbody_arm_endpoint_sagittal_phase: -4.0
+      upperbody_arm_endpoint_sagittal_vel_phase: -0.10
       upperbody_arm_velocity_opposition: -0.02
       upperbody_arm_leg_phase: -0.12
       upperbody_arm_leg_velocity_phase: -0.01
@@ -47,6 +49,9 @@ rewards:
     arm_endpoint_lateral_targets: [0.22, -0.22]
     arm_endpoint_lateral_deadband: 0.035
     arm_endpoint_lateral_vel_deadband: 0.08
+    arm_endpoint_sagittal_phase_gain: 0.10
+    arm_endpoint_sagittal_vel_phase_gain: 0.06
+    arm_endpoint_sagittal_same_direction_weight: 0.25
     shoulder_pitch_soft_limit: 0.70
     elbow_flexion_target: 0.20
     elbow_flexion_deadband: 0.18

@@ -32,6 +32,8 @@
 - `upperbody_arm_lateral_deviation`：压制 shoulder roll/yaw 的横向关节偏移。
 - `upperbody_arm_endpoint_lateral_pos`：在 base frame 中约束左右 `elbow_link` 的横向 y 位置，直接限制手臂末端左右扫动。
 - `upperbody_arm_endpoint_lateral_vel`：在 base frame 中惩罚左右 `elbow_link` 的横向 y 速度，抑制左右甩臂的动态振荡。
+- `upperbody_arm_endpoint_sagittal_phase`：在 base frame 中约束左右 `elbow_link` 的前后 x 位置差，使其跟左右髋 pitch 相位匹配，明确形成前后反相摆臂。
+- `upperbody_arm_endpoint_sagittal_vel_phase`：在 base frame 中约束左右 `elbow_link` 的前后 x 速度差，同时惩罚双臂同向前后运动，让摆臂更像左右反相的行走摆臂。
 - `upperbody_arm_velocity_opposition`：左右肩 pitch 速度反相，抑制同向甩臂。
 - `upperbody_arm_leg_phase`：肩 pitch 跟对侧髋 pitch 建立角度相位关系。
 - `upperbody_arm_leg_velocity_phase`：肩 pitch 速度跟对侧髋 pitch 速度建立相位关系，让摆臂不是静态摆姿势。
@@ -94,6 +96,8 @@ H1 的 `shoulder_pitch_joint` 是前后摆动通道；`shoulder_roll_joint` 和 
 ## 调参建议
 
 - 手臂几乎不动：适当增大 `arm_leg_phase_gain` 到 0.45，或把 `upperbody_arm_leg_phase` 从 `-0.12` 调到 `-0.18`；同时确认 stage3 没有锁住肩关节。
+- 前后摆臂相位方向反了：把 `arm_endpoint_sagittal_phase_gain` 和 `arm_endpoint_sagittal_vel_phase_gain` 同时改成负数，例如 `-0.10` 和 `-0.06`。
+- 前后摆臂幅度不足：增大 `upperbody_arm_endpoint_sagittal_phase` 的绝对值，例如 stage3 从 `-4.0` 调到 `-6.0`。
 - 手臂乱甩：减小 `arm_leg_phase_gain`，增大 `upperbody_shoulder_pitch_limit`、`upperbody_action_rate`、`upperbody_dof_acc` 或 `upperbody_stationary_arm_posture` 的惩罚强度。
 - 走路变差：降低 `upperbody_arm_leg_phase` 和 `upperbody_arm_leg_velocity_phase`，先让 locomotion reward 恢复，再逐步加回摆臂项。
 - 转向时手臂不自然：当前相位主要绑定前进步态；如果后续训练强转向，可增加 yaw command gate 或为转向单独设计 torso/arm 协调项。

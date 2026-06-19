@@ -203,6 +203,32 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         endpoint_y_vel = torch.abs(self._arm_endpoint_vel_in_base()[:, :, 1])
         return torch.sum(torch.square(torch.clip(endpoint_y_vel - deadband, min=0.0)), dim=1)
 
+    def _reward_upperbody_arm_endpoint_sagittal_phase(self):
+        gain = self._upper_body_reward_cfg("arm_endpoint_sagittal_phase_gain", 0.10)
+        endpoint_x = self._arm_endpoint_pos_in_base()[:, :, 0]
+        endpoint_x_delta = endpoint_x[:, 0] - endpoint_x[:, 1]
+        hip_phase = (
+            self._centered_dof_pos(self.right_hip_pitch_index)
+            - self._centered_dof_pos(self.left_hip_pitch_index)
+        )
+        target_delta = gain * hip_phase
+        return torch.square(endpoint_x_delta - target_delta) * self._moving_command_mask()
+
+    def _reward_upperbody_arm_endpoint_sagittal_vel_phase(self):
+        gain = self._upper_body_reward_cfg("arm_endpoint_sagittal_vel_phase_gain", 0.06)
+        same_direction_weight = self._upper_body_reward_cfg("arm_endpoint_sagittal_same_direction_weight", 0.25)
+
+        endpoint_x_vel = self._arm_endpoint_vel_in_base()[:, :, 0]
+        endpoint_x_vel_delta = endpoint_x_vel[:, 0] - endpoint_x_vel[:, 1]
+        hip_vel_phase = (
+            self.simulator.dof_vel[:, self.right_hip_pitch_index]
+            - self.simulator.dof_vel[:, self.left_hip_pitch_index]
+        )
+        target_delta = gain * hip_vel_phase
+        phase_error = torch.square(endpoint_x_vel_delta - target_delta)
+        same_direction_error = torch.square(endpoint_x_vel[:, 0] + endpoint_x_vel[:, 1])
+        return (phase_error + same_direction_weight * same_direction_error) * self._moving_command_mask()
+
     def _reward_upperbody_arm_leg_phase(self):
         gain = self._upper_body_reward_cfg("arm_leg_phase_gain", 0.5)
         min_speed = self._upper_body_reward_cfg("arm_leg_phase_min_command_speed", 0.15)
