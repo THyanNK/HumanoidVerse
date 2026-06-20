@@ -1,0 +1,27 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage3
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage3Exp01StraightGated
+  set_reward_date: 20260620
+  reward_scales:
+      upperbody_arm_endpoint_sagittal_phase: -4.5
+      upperbody_arm_endpoint_sagittal_vel_phase: -0.12
+      upperbody_arm_leg_phase: -0.14
+      upperbody_arm_leg_velocity_phase: -0.012
+
+  upper_body:
+    # Apply strong arm-leg phase shaping only to mostly forward walking.
+    # Turns and lateral commands still use posture, lateral endpoint, and smoothness rewards.
+    use_straight_walk_arm_swing_mask: True
+    arm_swing_min_forward_speed: 0.20
+    arm_swing_max_lateral_command: 0.12
+    arm_swing_max_yaw_command: 0.35
+    arm_swing_speed_gain_base: 1.0
+    arm_swing_speed_gain_slope: 0.0
+    arm_swing_speed_gain_ref: 1.0
+    arm_swing_speed_gain_min: 1.0
+    arm_swing_speed_gain_max: 1.0

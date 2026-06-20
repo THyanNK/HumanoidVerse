@@ -1,0 +1,26 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage3_exp02_speed_elbow
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage3Exp03TorsoRobust
+  set_reward_date: 20260620
+  reward_scales:
+      upperbody_locked_dof_pos: 0.0
+      upperbody_action_rate: -0.025
+      upperbody_dof_acc: -7.0e-8
+      upperbody_torques: -6.0e-6
+      upperbody_torso_deviation: -2.0
+      upperbody_arm_endpoint_sagittal_phase: -4.5
+      upperbody_arm_leg_phase: -0.12
+      upperbody_elbow_swing_coupling: -0.18
+
+  upper_body:
+    # This experiment is intentionally riskier: the torso is no longer action-locked,
+    # but a tight soft penalty keeps it from becoming the main locomotion actuator.
+    locked_action_dof_names: []
+    locked_reward_dof_names: []
+    torso_deviation_deadband: 0.08
+    arm_swing_max_yaw_command: 0.45

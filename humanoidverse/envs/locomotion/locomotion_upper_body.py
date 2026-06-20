@@ -116,6 +116,32 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         min_speed = self._upper_body_reward_cfg("arm_leg_phase_min_command_speed", 0.15)
         return (self._command_speed() > min_speed).float()
 
+    def _straight_walk_arm_swing_mask(self):
+        min_forward = self._upper_body_reward_cfg("arm_swing_min_forward_speed", 0.15)
+        max_lateral = self._upper_body_reward_cfg("arm_swing_max_lateral_command", 1.0e6)
+        max_yaw = self._upper_body_reward_cfg("arm_swing_max_yaw_command", 1.0e6)
+        return (
+            (self.commands[:, 0] > min_forward)
+            & (torch.abs(self.commands[:, 1]) <= max_lateral)
+            & (torch.abs(self.commands[:, 2]) <= max_yaw)
+        ).float()
+
+    def _arm_swing_mask(self):
+        if self._upper_body_reward_cfg("use_straight_walk_arm_swing_mask", False):
+            return self._straight_walk_arm_swing_mask()
+        return self._moving_command_mask()
+
+    def _arm_swing_speed_multiplier(self):
+        base = self._upper_body_reward_cfg("arm_swing_speed_gain_base", 1.0)
+        slope = self._upper_body_reward_cfg("arm_swing_speed_gain_slope", 0.0)
+        ref_speed = max(self._upper_body_reward_cfg("arm_swing_speed_gain_ref", 1.0), 1.0e-6)
+        min_multiplier = self._upper_body_reward_cfg("arm_swing_speed_gain_min", 0.0)
+        max_multiplier = self._upper_body_reward_cfg("arm_swing_speed_gain_max", 10.0)
+
+        forward_command = torch.clamp(self.commands[:, 0], min=0.0)
+        multiplier = base + slope * (forward_command / ref_speed)
+        return torch.clamp(multiplier, min_multiplier, max_multiplier)
+
     def _body_vectors_in_base(self, vectors):
         num_bodies = vectors.shape[1]
         base_quat = self.base_quat.unsqueeze(1).expand(-1, num_bodies, -1)
@@ -211,8 +237,8 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             self._centered_dof_pos(self.right_hip_pitch_index)
             - self._centered_dof_pos(self.left_hip_pitch_index)
         )
-        target_delta = gain * hip_phase
-        return torch.square(endpoint_x_delta - target_delta) * self._moving_command_mask()
+        target_delta = gain * self._arm_swing_speed_multiplier() * hip_phase
+        return torch.square(endpoint_x_delta - target_delta) * self._arm_swing_mask()
 
     def _reward_upperbody_arm_endpoint_sagittal_vel_phase(self):
         gain = self._upper_body_reward_cfg("arm_endpoint_sagittal_vel_phase_gain", 0.06)
@@ -224,25 +250,25 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             self.simulator.dof_vel[:, self.right_hip_pitch_index]
             - self.simulator.dof_vel[:, self.left_hip_pitch_index]
         )
-        target_delta = gain * hip_vel_phase
+        target_delta = gain * self._arm_swing_speed_multiplier() * hip_vel_phase
         phase_error = torch.square(endpoint_x_vel_delta - target_delta)
         same_direction_error = torch.square(endpoint_x_vel[:, 0] + endpoint_x_vel[:, 1])
-        return (phase_error + same_direction_weight * same_direction_error) * self._moving_command_mask()
+        return (phase_error + same_direction_weight * same_direction_error) * self._arm_swing_mask()
 
     def _reward_upperbody_arm_leg_phase(self):
         gain = self._upper_body_reward_cfg("arm_leg_phase_gain", 0.5)
-        min_speed = self._upper_body_reward_cfg("arm_leg_phase_min_command_speed", 0.15)
 
         left_arm_pitch = self._centered_dof_pos(self.left_shoulder_pitch_index)
         right_arm_pitch = self._centered_dof_pos(self.right_shoulder_pitch_index)
         left_hip_pitch = self._centered_dof_pos(self.left_hip_pitch_index)
         right_hip_pitch = self._centered_dof_pos(self.right_hip_pitch_index)
 
-        target_left_arm = gain * right_hip_pitch
-        target_right_arm = gain * left_hip_pitch
+        speed_multiplier = self._arm_swing_speed_multiplier()
+        target_left_arm = gain * speed_multiplier * right_hip_pitch
+        target_right_arm = gain * speed_multiplier * left_hip_pitch
         phase_error = torch.square(left_arm_pitch - target_left_arm) + torch.square(right_arm_pitch - target_right_arm)
 
-        return phase_error * (self._command_speed() > min_speed).float()
+        return phase_error * self._arm_swing_mask()
 
     def _reward_upperbody_arm_leg_velocity_phase(self):
         gain = self._upper_body_reward_cfg(
@@ -255,16 +281,17 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         left_hip_vel = self.simulator.dof_vel[:, self.left_hip_pitch_index]
         right_hip_vel = self.simulator.dof_vel[:, self.right_hip_pitch_index]
 
+        speed_multiplier = self._arm_swing_speed_multiplier()
         phase_error = (
-            torch.square(left_arm_vel - gain * right_hip_vel)
-            + torch.square(right_arm_vel - gain * left_hip_vel)
+            torch.square(left_arm_vel - gain * speed_multiplier * right_hip_vel)
+            + torch.square(right_arm_vel - gain * speed_multiplier * left_hip_vel)
         )
-        return phase_error * self._moving_command_mask()
+        return phase_error * self._arm_swing_mask()
 
     def _reward_upperbody_arm_velocity_opposition(self):
         left_arm_vel = self.simulator.dof_vel[:, self.left_shoulder_pitch_index]
         right_arm_vel = self.simulator.dof_vel[:, self.right_shoulder_pitch_index]
-        return torch.square(left_arm_vel + right_arm_vel) * self._moving_command_mask()
+        return torch.square(left_arm_vel + right_arm_vel) * self._arm_swing_mask()
 
     def _reward_upperbody_shoulder_pitch_limit(self):
         soft_limit = self._upper_body_reward_cfg("shoulder_pitch_soft_limit", 0.65)
@@ -280,6 +307,23 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         elbow_pos = self.simulator.dof_pos[:, self.elbow_indices]
         deviation = torch.abs(elbow_pos - target)
         return torch.sum(torch.square(torch.clip(deviation - deadband, min=0.0)), dim=1)
+
+    def _reward_upperbody_elbow_swing_coupling(self):
+        base_target = self._upper_body_reward_cfg("elbow_flexion_target", 0.20)
+        coupling_gain = self._upper_body_reward_cfg("elbow_swing_coupling_gain", 0.0)
+        max_target = self._upper_body_reward_cfg("elbow_swing_coupling_max_target", 0.45)
+        deadband = self._upper_body_reward_cfg("elbow_swing_coupling_deadband", 0.12)
+
+        shoulder_pitch = torch.abs(
+            self._centered_dof_pos_for_indices(self.shoulder_pitch_indices)
+        )
+        target = torch.clamp(base_target + coupling_gain * shoulder_pitch, max=max_target)
+        elbow_pos = self.simulator.dof_pos[:, self.elbow_indices]
+        deviation = torch.abs(elbow_pos - target)
+        return (
+            torch.sum(torch.square(torch.clip(deviation - deadband, min=0.0)), dim=1)
+            * self._arm_swing_mask()
+        )
 
     def _reward_upperbody_stationary_arm_posture(self):
         max_speed = self._upper_body_reward_cfg("stationary_arm_max_command_speed", 0.15)
