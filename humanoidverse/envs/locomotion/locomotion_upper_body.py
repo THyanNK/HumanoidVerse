@@ -142,6 +142,34 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         multiplier = base + slope * (forward_command / ref_speed)
         return torch.clamp(multiplier, min_multiplier, max_multiplier)
 
+    def _teacher_swing_phase(self):
+        frequency = self._upper_body_reward_cfg("teacher_swing_frequency", 0.9)
+        phase_offset = self._upper_body_reward_cfg("teacher_swing_phase_offset", 0.0)
+        time = self.episode_length_buf.to(dtype=torch.float32) * self.dt
+        return 2.0 * torch.pi * frequency * time + phase_offset
+
+    def _teacher_swing_omega(self):
+        frequency = self._upper_body_reward_cfg("teacher_swing_frequency", 0.9)
+        return 2.0 * torch.pi * frequency
+
+    def _teacher_shoulder_pitch_targets(self):
+        amplitude = self._upper_body_reward_cfg("teacher_shoulder_pitch_amplitude", 0.35)
+        swing = amplitude * torch.sin(self._teacher_swing_phase())
+        return torch.stack((swing, -swing), dim=1)
+
+    def _teacher_shoulder_pitch_vel_targets(self):
+        amplitude = self._upper_body_reward_cfg("teacher_shoulder_pitch_amplitude", 0.35)
+        swing_vel = amplitude * self._teacher_swing_omega() * torch.cos(self._teacher_swing_phase())
+        return torch.stack((swing_vel, -swing_vel), dim=1)
+
+    def _teacher_endpoint_sagittal_delta_target(self):
+        amplitude = self._upper_body_reward_cfg("teacher_endpoint_sagittal_delta", 0.16)
+        return amplitude * torch.sin(self._teacher_swing_phase())
+
+    def _teacher_endpoint_sagittal_delta_vel_target(self):
+        amplitude = self._upper_body_reward_cfg("teacher_endpoint_sagittal_delta", 0.16)
+        return amplitude * self._teacher_swing_omega() * torch.cos(self._teacher_swing_phase())
+
     def _body_vectors_in_base(self, vectors):
         num_bodies = vectors.shape[1]
         base_quat = self.base_quat.unsqueeze(1).expand(-1, num_bodies, -1)
@@ -262,6 +290,28 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         phase_error = torch.square(endpoint_x_vel_delta - target_delta)
         same_direction_error = torch.square(endpoint_x_vel[:, 0] + endpoint_x_vel[:, 1])
         return (phase_error + same_direction_weight * same_direction_error) * self._arm_swing_mask()
+
+    def _reward_upperbody_teacher_arm_swing_pitch(self):
+        shoulder_pitch = self._centered_dof_pos_for_indices(self.shoulder_pitch_indices)
+        target = self._teacher_shoulder_pitch_targets()
+        return torch.sum(torch.square(shoulder_pitch - target), dim=1)
+
+    def _reward_upperbody_teacher_arm_swing_velocity(self):
+        shoulder_pitch_vel = self.simulator.dof_vel[:, self.shoulder_pitch_indices]
+        target = self._teacher_shoulder_pitch_vel_targets()
+        return torch.sum(torch.square(shoulder_pitch_vel - target), dim=1)
+
+    def _reward_upperbody_teacher_endpoint_sagittal(self):
+        endpoint_x = self._arm_endpoint_pos_in_base()[:, :, 0]
+        endpoint_x_delta = endpoint_x[:, 0] - endpoint_x[:, 1]
+        return torch.square(endpoint_x_delta - self._teacher_endpoint_sagittal_delta_target())
+
+    def _reward_upperbody_teacher_endpoint_sagittal_velocity(self):
+        endpoint_x_vel = self._arm_endpoint_vel_in_base()[:, :, 0]
+        endpoint_x_vel_delta = endpoint_x_vel[:, 0] - endpoint_x_vel[:, 1]
+        return torch.square(
+            endpoint_x_vel_delta - self._teacher_endpoint_sagittal_delta_vel_target()
+        )
 
     def _reward_upperbody_arm_leg_phase(self):
         gain = self._upper_body_reward_cfg("arm_leg_phase_gain", 0.5)

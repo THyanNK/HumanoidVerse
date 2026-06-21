@@ -1,0 +1,23 @@
+# @package _global_
+
+defaults:
+  - /algo: ppo
+  - /env: locomotion_upper_body
+  - _self_
+
+experiment_name: H1ArmSwingTeacher_Genesis
+
+algo:
+  config:
+    eval_command: [0.0, 0.0, 0.0]
+    init_noise_std: 0.6
+
+env:
+  config:
+    max_episode_length_s: 12
+    locomotion_command_ranges:
+      lin_vel_x: [0.0, 0.0]
+      lin_vel_y: [0.0, 0.0]
+      ang_vel_yaw: [0.0, 0.0]
+      heading: [0.0, 0.0]
+    locomotion_command_resampling_time: 12.0
