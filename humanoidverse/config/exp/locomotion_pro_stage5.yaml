@@ -1,0 +1,20 @@
+# @package _global_
+
+defaults:
+  - /algo: ppo
+  - /env: locomotion_upper_body
+  - _self_
+
+experiment_name: H1Pro_stage5_small_shoulder_swing_Genesis
+
+algo:
+  config:
+    eval_command: [0.6, 0.0, 0.0]
+
+env:
+  config:
+    locomotion_command_ranges:
+      lin_vel_x: [0.0, 1.0]
+      lin_vel_y: [0.0, 0.0]
+      ang_vel_yaw: [0.0, 0.0]
+      heading: [0.0, 0.0]

@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage4
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage5SmallShoulderSwing
+  set_reward_date: 20260622
+  reward_scales:
+      upperbody_teacher_arm_swing_pitch: -8.0
+      upperbody_teacher_arm_swing_velocity: 0.0
+      upperbody_arm_endpoint_sagittal_amplitude: -10.0
+
+  upper_body:
+    teacher_shoulder_pitch_amplitude: 0.08
+    arm_endpoint_sagittal_min_delta: 0.04
