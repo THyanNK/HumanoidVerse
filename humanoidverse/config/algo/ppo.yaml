@@ -26,6 +26,7 @@ algo:
     init_noise_std: 0.8
     min_action_std: null
     max_action_std: null
+    terminal_log_interval: 10
 
     num_learning_iterations: 5000
     init_at_random_ep_len: True

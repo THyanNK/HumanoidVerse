@@ -89,6 +89,7 @@ class PPO(BaseAlgo):
         self.use_clipped_value_loss = self.config.use_clipped_value_loss
         self.min_action_std = self.config.get("min_action_std", None)
         self.max_action_std = self.config.get("max_action_std", None)
+        self.terminal_log_interval = max(1, int(self.config.get("terminal_log_interval", 10)))
 
 
     def setup(self):
@@ -485,12 +486,23 @@ class PPO(BaseAlgo):
             "critic": self.critic
         }
 
-    def _post_epoch_logging(self, log_dict, width=80, pad=35):
+    def _format_log_pairs(self, entries, column_width):
+        lines = []
+        for index in range(0, len(entries), 2):
+            left = entries[index]
+            right = entries[index + 1] if index + 1 < len(entries) else ""
+            if right:
+                lines.append(f"{left:<{column_width}}  {right}")
+            else:
+                lines.append(left)
+        return "\n".join(lines) + ("\n" if lines else "")
+
+    def _post_epoch_logging(self, log_dict, width=120, pad=35):
         self.tot_timesteps += self.num_steps_per_env * self.env.num_envs
         self.tot_time += log_dict['collection_time'] + log_dict['learn_time']
         iteration_time = log_dict['collection_time'] + log_dict['learn_time']
 
-        ep_string = f''
+        ep_entries = []
         if log_dict['ep_infos']:
             for key in log_dict['ep_infos'][0]:
                 infotensor = torch.tensor([], device=self.device)
@@ -503,7 +515,7 @@ class PPO(BaseAlgo):
                     infotensor = torch.cat((infotensor, ep_info[key].to(self.device)))
                 value = torch.mean(infotensor)
                 self.writer.add_scalar('Episode/' + key, value, log_dict['it'])
-                ep_string += f"""{f'Mean episode {key}:':>{pad}} {value:.4f}\n"""
+                ep_entries.append(f"{key}: {value:.4f}")
 
         train_log_dict = {}
         mean_std = self.actor.std.mean()
@@ -516,7 +528,12 @@ class PPO(BaseAlgo):
 
         self._logging_to_writer(log_dict, train_log_dict, env_log_dict)
 
-        str = f" \033[1m Learning iteration {log_dict['it']}/{self.current_learning_iteration + log_dict['num_learning_iterations']} \033[0m "
+        total_iterations = self.current_learning_iteration + log_dict['num_learning_iterations']
+        is_final_iteration = log_dict['it'] + 1 >= total_iterations
+        if log_dict['it'] % self.terminal_log_interval != 0 and not is_final_iteration:
+            return
+
+        str = f" \033[1m Learning iteration {log_dict['it']}/{total_iterations} \033[0m "
 
         if len(log_dict['rewbuffer']) > 0:
             log_string = (f"""{str.center(width, ' ')}\n\n"""
@@ -526,7 +543,7 @@ class PPO(BaseAlgo):
                         #   f"""{'Surrogate loss:':>{pad}} {log_dict['mean_surrogate_loss']:.4f}\n"""
                           f"""{'Mean action noise std:':>{pad}} {train_log_dict['mean_std']:.2f}\n"""
                           f"""{'Mean reward:':>{pad}} {statistics.mean(log_dict['rewbuffer']):.2f}\n"""
-                          f"""{'Mean episode length:':>{pad}} {statistics.mean(log_dict['lenbuffer']):.2f}\n""")
+                          f"""{'Episode length:':>{pad}} {statistics.mean(log_dict['lenbuffer']):.2f}\n""")
         else:
             log_string = (f"""{str.center(width, ' ')}\n\n"""
                           f"""{'Computation:':>{pad}} {train_log_dict['fps']:.0f} steps/s (collection: {log_dict[
@@ -540,14 +557,18 @@ class PPO(BaseAlgo):
             entry = f"{f'{k}:':>{pad}} {v:.4f}"
             env_log_string += f"{entry}\n"
         log_string += env_log_string
-        log_string += ep_string
-        log_string += (f"""{'-' * width}\n"""
-                       f"""{'Total timesteps:':>{pad}} {self.tot_timesteps}\n"""
-                       f"""{'Iteration time:':>{pad}} {iteration_time:.2f}s\n"""
-                       f"""{'Total time:':>{pad}} {self.tot_time:.2f}s\n"""
-                       f"""{'ETA:':>{pad}} {self.tot_time / (log_dict['it'] + 1) * (
-                               log_dict['num_learning_iterations'] - log_dict['it']):.1f}s\n""")
-        log_string += f"Logging Directory: {self.log_dir}"
+        log_string += self._format_log_pairs(ep_entries, column_width=58)
+        eta = self.tot_time / (log_dict['it'] + 1) * (
+            log_dict['num_learning_iterations'] - log_dict['it']
+        )
+        log_string += (
+            f"{'-' * width}\n"
+            f"Total timesteps: {self.tot_timesteps} | "
+            f"Iteration time: {iteration_time:.2f}s | "
+            f"Total time: {self.tot_time:.2f}s | "
+            f"ETA: {eta:.1f}s | "
+            f"Logging Directory: {self.log_dir}"
+        )
 
         # Use rich Live to update a specific section of the console
         with Live(Panel(log_string, title="Training Log"), refresh_per_second=4, console=console):
