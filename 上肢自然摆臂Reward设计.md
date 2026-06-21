@@ -53,7 +53,7 @@ bash train_genesis_pro_staged.sh --stage 1
 
 策略：锁住 torso 和双臂全部自由度，只训练全身模型在 19DoF 配置下稳定 locomotion。这个阶段不追求摆臂。
 
-### Stage 2：只放开肩 pitch
+### Stage 2：肩 pitch 前后摆臂预热
 
 入口：
 
@@ -63,7 +63,7 @@ bash train_genesis_pro_staged.sh --stage 2 checkpoint=/path/to/stage1/model_x.pt
 
 配置：`humanoidverse/config/rewards/loco/reward_h1_locomotion_upper_body_stage2.yaml`
 
-策略：torso、shoulder roll/yaw、elbow 仍锁住，只允许左右 shoulder pitch 小幅运动。这里加入肩 pitch 幅度、站立回中、左右反向速度等约束，但还不强行要求臂腿相位。
+策略：torso、shoulder roll/yaw、elbow 仍锁住，只允许左右 shoulder pitch 小幅运动。这里加入较弱的 endpoint sagittal phase、肩-髋相位和左右反向速度约束，让手臂先学小幅前后反相摆动，降低 stage3 一次性塑形难度。
 
 ### Stage 3：加入完整自然摆臂
 
@@ -93,11 +93,15 @@ bash train_genesis_pro.sh
 
 H1 的 `shoulder_pitch_joint` 是前后摆动通道；`shoulder_roll_joint` 和 `shoulder_yaw_joint` 更容易造成横向摆动。之前 stage3 只锁 torso，roll/yaw 放开，同时 `arm_posture_deadband` 比较宽；另外左右 roll/yaw 的镜像对称项用了同号约束，和 H1 左右肩 roll/yaw 的镜像限位不匹配。现在已经改成 roll/yaw 反号镜像，并加入 `upperbody_arm_lateral_deviation` 抑制横向关节偏移。进一步加入末端 link 约束：`upperbody_arm_endpoint_lateral_pos` 和 `upperbody_arm_endpoint_lateral_vel` 会直接限制左右 `elbow_link` 在机器人 base frame 中的横向位置和速度，因此比单纯限制 roll/yaw 角度更能压住左右摆臂。
 
+## 当前稳定性设置
+
+当前 stage3 已经把前后 endpoint 相位 reward 从 `-4.0/-0.10` 降到 `-0.8/-0.02`，并加入 `reward_penalty_reward_names`，让它跟随 penalty curriculum 渐进生效。这样先保 locomotion 稳定，再逐步塑形前后摆臂。
+
 ## 调参建议
 
 - 手臂几乎不动：适当增大 `arm_leg_phase_gain` 到 0.45，或把 `upperbody_arm_leg_phase` 从 `-0.12` 调到 `-0.18`；同时确认 stage3 没有锁住肩关节。
 - 前后摆臂相位方向反了：把 `arm_endpoint_sagittal_phase_gain` 和 `arm_endpoint_sagittal_vel_phase_gain` 同时改成负数，例如 `-0.10` 和 `-0.06`。
-- 前后摆臂幅度不足：增大 `upperbody_arm_endpoint_sagittal_phase` 的绝对值，例如 stage3 从 `-4.0` 调到 `-6.0`。
+- 前后摆臂幅度不足：先保证 stage3 能稳定走起来；稳定后再小步增大 `upperbody_arm_endpoint_sagittal_phase` 的绝对值，例如从 `-0.8` 调到 `-1.2` 或 `-1.5`，不要直接回到 `-4.0`。
 - 手臂乱甩：减小 `arm_leg_phase_gain`，增大 `upperbody_shoulder_pitch_limit`、`upperbody_action_rate`、`upperbody_dof_acc` 或 `upperbody_stationary_arm_posture` 的惩罚强度。
 - 走路变差：降低 `upperbody_arm_leg_phase` 和 `upperbody_arm_leg_velocity_phase`，先让 locomotion reward 恢复，再逐步加回摆臂项。
 - 转向时手臂不自然：当前相位主要绑定前进步态；如果后续训练强转向，可增加 yaw command gate 或为转向单独设计 torso/arm 协调项。

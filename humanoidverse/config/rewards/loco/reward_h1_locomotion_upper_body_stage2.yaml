@@ -32,10 +32,10 @@ rewards:
       upperbody_arm_lateral_deviation: -0.80
       upperbody_arm_endpoint_lateral_pos: -4.0
       upperbody_arm_endpoint_lateral_vel: -0.10
-      upperbody_arm_endpoint_sagittal_phase: -1.5
-      upperbody_arm_endpoint_sagittal_vel_phase: -0.04
-      upperbody_arm_velocity_opposition: -0.01
-      upperbody_arm_leg_phase: 0.0
+      upperbody_arm_endpoint_sagittal_phase: -0.8
+      upperbody_arm_endpoint_sagittal_vel_phase: -0.02
+      upperbody_arm_velocity_opposition: -0.02
+      upperbody_arm_leg_phase: -0.04
       upperbody_arm_leg_velocity_phase: 0.0
 
   upper_body:
@@ -61,7 +61,7 @@ rewards:
     arm_endpoint_sagittal_same_direction_weight: 0.20
     shoulder_pitch_soft_limit: 0.55
     stationary_arm_max_command_speed: 0.15
-    arm_leg_phase_gain: 0.0
+    arm_leg_phase_gain: 0.20
     arm_leg_velocity_phase_gain: 0.0
     arm_leg_phase_min_command_speed: 0.15
 
@@ -90,5 +90,8 @@ rewards:
     "upperbody_torques",
     "upperbody_shoulder_pitch_limit",
     "upperbody_stationary_arm_posture",
+    "upperbody_arm_leg_phase",
+    "upperbody_arm_endpoint_sagittal_phase",
+    "upperbody_arm_endpoint_sagittal_vel_phase",
     "upperbody_arm_velocity_opposition"
   ]

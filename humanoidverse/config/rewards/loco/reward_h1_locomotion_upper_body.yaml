@@ -20,8 +20,8 @@ rewards:
       upperbody_arm_lateral_deviation: -1.00
       upperbody_arm_endpoint_lateral_pos: -6.0
       upperbody_arm_endpoint_lateral_vel: -0.20
-      upperbody_arm_endpoint_sagittal_phase: -3.0
-      upperbody_arm_endpoint_sagittal_vel_phase: -0.08
+      upperbody_arm_endpoint_sagittal_phase: -0.6
+      upperbody_arm_endpoint_sagittal_vel_phase: -0.015
       upperbody_arm_velocity_opposition: -0.02
       upperbody_arm_leg_phase: -0.20
       upperbody_arm_leg_velocity_phase: -0.01
@@ -65,5 +65,7 @@ rewards:
     "upperbody_torques",
     "upperbody_shoulder_pitch_limit",
     "upperbody_elbow_posture",
-    "upperbody_stationary_arm_posture"
+    "upperbody_stationary_arm_posture",
+    "upperbody_arm_endpoint_sagittal_phase",
+    "upperbody_arm_endpoint_sagittal_vel_phase"
   ]
