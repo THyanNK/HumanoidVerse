@@ -240,6 +240,14 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         target_delta = gain * self._arm_swing_speed_multiplier() * hip_phase
         return torch.square(endpoint_x_delta - target_delta) * self._arm_swing_mask()
 
+    def _reward_upperbody_arm_endpoint_sagittal_balance(self):
+        target = self._upper_body_reward_cfg("arm_endpoint_sagittal_balance_target", 0.02)
+        deadband = self._upper_body_reward_cfg("arm_endpoint_sagittal_balance_deadband", 0.035)
+        endpoint_x = self._arm_endpoint_pos_in_base()[:, :, 0]
+        endpoint_x_mean = torch.mean(endpoint_x, dim=1)
+        balance_error = torch.abs(endpoint_x_mean - target)
+        return torch.square(torch.clip(balance_error - deadband, min=0.0)) * self._arm_swing_mask()
+
     def _reward_upperbody_arm_endpoint_sagittal_vel_phase(self):
         gain = self._upper_body_reward_cfg("arm_endpoint_sagittal_vel_phase_gain", 0.06)
         same_direction_weight = self._upper_body_reward_cfg("arm_endpoint_sagittal_same_direction_weight", 0.25)

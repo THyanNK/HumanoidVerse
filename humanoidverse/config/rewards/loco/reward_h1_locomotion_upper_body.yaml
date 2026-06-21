@@ -12,19 +12,20 @@ rewards:
       upperbody_dof_acc: -5.0e-8
       upperbody_torques: -5.0e-6
       upperbody_torso_deviation: -1.0
-      upperbody_arm_posture: -0.20
+      upperbody_arm_posture: 0.0
       upperbody_shoulder_pitch_limit: -0.70
       upperbody_elbow_posture: -0.15
       upperbody_stationary_arm_posture: -0.60
-      upperbody_arm_symmetry: -0.10
+      upperbody_arm_symmetry: -0.25
       upperbody_arm_lateral_deviation: -1.00
       upperbody_arm_endpoint_lateral_pos: -6.0
       upperbody_arm_endpoint_lateral_vel: -0.20
       upperbody_arm_endpoint_sagittal_phase: -0.6
+      upperbody_arm_endpoint_sagittal_balance: -3.0
       upperbody_arm_endpoint_sagittal_vel_phase: -0.015
       upperbody_arm_velocity_opposition: -0.02
       upperbody_arm_leg_phase: -0.20
-      upperbody_arm_leg_velocity_phase: -0.01
+      upperbody_arm_leg_velocity_phase: 0.0
 
   upper_body:
     torso_deviation_deadband: 0.12
@@ -34,6 +35,8 @@ rewards:
     arm_endpoint_lateral_deadband: 0.035
     arm_endpoint_lateral_vel_deadband: 0.08
     arm_endpoint_sagittal_phase_gain: 0.10
+    arm_endpoint_sagittal_balance_target: 0.02
+    arm_endpoint_sagittal_balance_deadband: 0.035
     arm_endpoint_sagittal_vel_phase_gain: 0.06
     arm_endpoint_sagittal_same_direction_weight: 0.25
     shoulder_pitch_soft_limit: 0.65
@@ -41,7 +44,7 @@ rewards:
     elbow_flexion_deadband: 0.18
     stationary_arm_max_command_speed: 0.15
     arm_leg_phase_gain: 0.35
-    arm_leg_velocity_phase_gain: 0.25
+    arm_leg_velocity_phase_gain: 0.0
     arm_leg_phase_min_command_speed: 0.20
 
   reward_penalty_reward_names : [
@@ -67,5 +70,6 @@ rewards:
     "upperbody_elbow_posture",
     "upperbody_stationary_arm_posture",
     "upperbody_arm_endpoint_sagittal_phase",
+    "upperbody_arm_endpoint_sagittal_balance",
     "upperbody_arm_endpoint_sagittal_vel_phase"
   ]

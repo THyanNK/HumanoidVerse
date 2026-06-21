@@ -9,9 +9,10 @@ rewards:
   set_reward_date: 20260620
   reward_scales:
       upperbody_arm_endpoint_sagittal_phase: -4.5
+      upperbody_arm_endpoint_sagittal_balance: -4.0
       upperbody_arm_endpoint_sagittal_vel_phase: -0.12
       upperbody_arm_leg_phase: -0.14
-      upperbody_arm_leg_velocity_phase: -0.012
+      upperbody_arm_leg_velocity_phase: 0.0
 
   upper_body:
     # Apply strong arm-leg phase shaping only to mostly forward walking.
