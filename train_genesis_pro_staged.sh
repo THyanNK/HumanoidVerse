@@ -50,8 +50,14 @@ case "$STAGE" in
     REWARD_CONFIG="loco/reward_h1_locomotion_upper_body_stage3"
     DEFAULT_EXPERIMENT_NAME="H1Pro_stage3_arm_swing_Genesis"
     ;;
+  4|stage4|amplitude|armamp)
+    STAGE_ID="stage4"
+    EXP_CONFIG="locomotion_pro_stage4"
+    REWARD_CONFIG="loco/reward_h1_locomotion_upper_body_stage4"
+    DEFAULT_EXPERIMENT_NAME="H1Pro_stage4_arm_amplitude_Genesis"
+    ;;
   *)
-    echo "Unknown STAGE '$STAGE'. Use 1, 2, or 3." >&2
+    echo "Unknown STAGE '$STAGE'. Use 1, 2, 3, or 4." >&2
     exit 1
     ;;
 esac

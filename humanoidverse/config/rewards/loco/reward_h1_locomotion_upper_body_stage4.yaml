@@ -1,0 +1,19 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage3
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage4ArmAmplitude
+  set_reward_date: 20260622
+  reward_scales:
+      upperbody_action_rate: -0.008
+      upperbody_dof_acc: -1.5e-8
+      upperbody_torques: -2.0e-6
+      upperbody_stationary_arm_posture: -0.20
+      upperbody_arm_endpoint_sagittal_amplitude: -20.0
+
+  upper_body:
+    arm_endpoint_sagittal_min_delta: 0.08
+    arm_endpoint_sagittal_amplitude_deadband: 0.01
