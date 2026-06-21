@@ -56,7 +56,8 @@ case "$STAGE" in
     ;;
 esac
 
-DEFAULT_EXPERIMENT_DIR="logs/\${timestamp}-pro-${STAGE_ID}"
+RUN_TIMESTAMP="${RUN_TIMESTAMP:-$(date +%Y%m%d_%H%M%S)}"
+DEFAULT_EXPERIMENT_DIR="logs/${RUN_TIMESTAMP}-pro-${STAGE_ID}"
 
 exec "$PYTHON_BIN" humanoidverse/train_agent.py \
   +simulator=genesis \

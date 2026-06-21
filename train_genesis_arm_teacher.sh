@@ -7,7 +7,8 @@ cd "$HV_DIR"
 PYTHON_BIN="${PYTHON_BIN:-/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python}"
 HEADLESS="${HEADLESS:-True}"
 TEACHER_ITERS="${TEACHER_ITERS:-3000}"
-EXPERIMENT_DIR_VALUE="${EXPERIMENT_DIR:-logs/\${timestamp}-arm-swing-teacher}"
+RUN_TIMESTAMP="${RUN_TIMESTAMP:-$(date +%Y%m%d_%H%M%S)}"
+EXPERIMENT_DIR_VALUE="${EXPERIMENT_DIR:-logs/${RUN_TIMESTAMP}-arm-swing-teacher}"
 EXPERIMENT_NAME_VALUE="${EXPERIMENT_NAME:-H1ArmSwingTeacher_Genesis}"
 EXTRA_ARGS=()
 
