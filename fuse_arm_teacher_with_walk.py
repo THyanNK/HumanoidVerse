@@ -44,9 +44,7 @@ H1_DOF_NAMES = [
 
 ARM_SWING_DOF_NAMES = [
     "left_shoulder_pitch_joint",
-    "left_elbow_joint",
     "right_shoulder_pitch_joint",
-    "right_elbow_joint",
 ]
 
 
@@ -70,7 +68,7 @@ def parse_args() -> argparse.Namespace:
         "--upper-dofs",
         nargs="+",
         default=ARM_SWING_DOF_NAMES,
-        help="Action DOF rows to copy from the teacher. Defaults to teacher-free swing joints: shoulder pitch and elbows.",
+        help="Action DOF rows to copy from the teacher. Defaults to shoulder pitch only; pass --upper-dofs explicitly to include elbows.",
     )
     parser.add_argument(
         "--include-torso",

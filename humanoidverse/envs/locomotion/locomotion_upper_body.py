@@ -294,7 +294,12 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
     def _reward_upperbody_teacher_arm_swing_pitch(self):
         shoulder_pitch = self._centered_dof_pos_for_indices(self.shoulder_pitch_indices)
         target = self._teacher_shoulder_pitch_targets()
-        return torch.sum(torch.square(shoulder_pitch - target), dim=1)
+        error = shoulder_pitch - target
+        self.log_dict["teacher_shoulder_pitch_abs"] = torch.mean(torch.abs(shoulder_pitch))
+        self.log_dict["teacher_shoulder_pitch_target_abs"] = torch.mean(torch.abs(target))
+        self.log_dict["teacher_shoulder_pitch_error_abs"] = torch.mean(torch.abs(error))
+        self.log_dict["teacher_elbow_abs"] = torch.mean(torch.abs(self.simulator.dof_pos[:, self.elbow_indices]))
+        return torch.sum(torch.square(error), dim=1)
 
     def _reward_upperbody_teacher_arm_swing_velocity(self):
         shoulder_pitch_vel = self.simulator.dof_vel[:, self.shoulder_pitch_indices]

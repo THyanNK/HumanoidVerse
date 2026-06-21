@@ -747,7 +747,8 @@ class LeggedRobotBase(BaseTask):
             self.simulator.dof_pos[env_ids] = target_state[..., 0]
             self.simulator.dof_vel[env_ids] = target_state[..., 1]
         else:
-            if getattr(self, "is_evaluating", False):
+            randomize_dof_pos = self.config.get("randomize_init_dof_pos", True)
+            if getattr(self, "is_evaluating", False) or not randomize_dof_pos:
                 self.simulator.dof_pos[env_ids] = self.default_dof_pos
             else:
                 self.simulator.dof_pos[env_ids] = self.default_dof_pos * torch_rand_float(0.5, 1.5, (len(env_ids), self.num_dof), device=str(self.device))
@@ -778,7 +779,8 @@ class LeggedRobotBase(BaseTask):
             if self.custom_origins and not getattr(self, "is_evaluating", False):
                 self.simulator.robot_root_states[env_ids, :2] += torch_rand_float(-1., 1., (len(env_ids), 2), device=str(self.device)) # xy position within 1m of the center
             # base velocities
-            if getattr(self, "is_evaluating", False):
+            randomize_root_velocity = self.config.get("randomize_init_root_velocity", True)
+            if getattr(self, "is_evaluating", False) or not randomize_root_velocity:
                 self.simulator.robot_root_states[env_ids, 7:13] = 0.
             else:
                 self.simulator.robot_root_states[env_ids, 7:13] = torch_rand_float(-0.5, 0.5, (len(env_ids), 6), device=str(self.device)) # [7:10]: lin vel, [10:13]: ang vel

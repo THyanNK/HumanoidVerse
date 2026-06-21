@@ -87,6 +87,8 @@ class PPO(BaseAlgo):
         self.entropy_coef = self.config.entropy_coef
         self.max_grad_norm = self.config.max_grad_norm
         self.use_clipped_value_loss = self.config.use_clipped_value_loss
+        self.min_action_std = self.config.get("min_action_std", None)
+        self.max_action_std = self.config.get("max_action_std", None)
 
 
     def setup(self):
@@ -109,6 +111,18 @@ class PPO(BaseAlgo):
 
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=self.actor_learning_rate)
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=self.critic_learning_rate)
+        self._clamp_action_std()
+
+    def _clamp_action_std(self):
+        if self.min_action_std is None and self.max_action_std is None:
+            return
+        clamp_kwargs = {}
+        if self.min_action_std is not None:
+            clamp_kwargs["min"] = float(self.min_action_std)
+        if self.max_action_std is not None:
+            clamp_kwargs["max"] = float(self.max_action_std)
+        with torch.no_grad():
+            self.actor.std.clamp_(**clamp_kwargs)
 
     def _setup_storage(self):
         self.storage = RolloutStorage(self.env.num_envs, self.num_steps_per_env)
@@ -141,6 +155,7 @@ class PPO(BaseAlgo):
             logger.info(f"Loading checkpoint from {ckpt_path}")
             loaded_dict = torch.load(ckpt_path, map_location=self.device)
             self.actor.load_state_dict(loaded_dict["actor_model_state_dict"])
+            self._clamp_action_std()
             self.critic.load_state_dict(loaded_dict["critic_model_state_dict"])
             if self.load_optimizer:
                 self.actor_optimizer.load_state_dict(loaded_dict["actor_optimizer_state_dict"])
@@ -450,6 +465,7 @@ class PPO(BaseAlgo):
         nn.utils.clip_grad_norm_(self.critic.parameters(), self.max_grad_norm)
 
         self.actor_optimizer.step()
+        self._clamp_action_std()
         self.critic_optimizer.step()
 
         loss_dict['Value'] += value_loss.item()
