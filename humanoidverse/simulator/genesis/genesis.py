@@ -33,6 +33,19 @@ class Genesis(BaseSimulator):
         self.device = device
         self.sim_device = device
         self.headless = False
+        self.viewer_camera_follow_enabled = self._env_flag(
+            "HUMANOIDVERSE_VIEWER_CAMERA_FOLLOW", default=False
+        )
+        self.viewer_camera_offset = self._parse_vector_env(
+            "HUMANOIDVERSE_VIEWER_CAMERA_OFFSET", (2.0, 0.0, 2.5)
+        )
+        self.viewer_camera_lookat_offset = self._parse_vector_env(
+            "HUMANOIDVERSE_VIEWER_CAMERA_LOOKAT_OFFSET", (0.0, 0.0, 0.5)
+        )
+        self.viewer_camera_track_z = self._env_flag(
+            "HUMANOIDVERSE_VIEWER_CAMERA_TRACK_Z", default=False
+        )
+        self._viewer_camera_warned = False
         gs.init(backend=gs.gpu if 'cuda' in self.device else gs.cpu)
 
     # ----- Configuration Setup Methods -----
@@ -82,6 +95,101 @@ class Genesis(BaseSimulator):
             if not isinstance(solver, RigidSolver):
                 continue
             self.rigid_solver = solver
+
+    def _env_flag(self, name, default=False):
+        value = os.environ.get(name)
+        if value is None:
+            return default
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+
+    def _parse_vector_env(self, name, default):
+        value = os.environ.get(name)
+        if not value:
+            return np.asarray(default, dtype=np.float32)
+
+        parts = value.replace("x", ",").split(",")
+        if len(parts) != len(default):
+            raise ValueError(f"{name} must have {len(default)} comma-separated values")
+        return np.asarray([float(part.strip()) for part in parts], dtype=np.float32)
+
+    def set_viewer_camera_follow(self, enabled):
+        self.viewer_camera_follow_enabled = bool(enabled)
+        return self.viewer_camera_follow_enabled
+
+    def toggle_viewer_camera_follow(self):
+        return self.set_viewer_camera_follow(not self.viewer_camera_follow_enabled)
+
+    def _get_first_env_base_position(self):
+        base_pos = getattr(self, "base_pos", None)
+        if base_pos is None and hasattr(self, "robot"):
+            try:
+                base_pos = self.robot.get_pos()
+            except Exception:
+                return None
+        if base_pos is None:
+            return None
+
+        if isinstance(base_pos, torch.Tensor):
+            base_pos = base_pos.detach().cpu().numpy()
+        base_pos = np.asarray(base_pos, dtype=np.float32)
+        if base_pos.ndim == 2:
+            base_pos = base_pos[0]
+        if base_pos.shape[0] < 3:
+            return None
+        return base_pos[:3].copy()
+
+    def _get_genesis_viewer(self):
+        visualizer = getattr(self.scene, "visualizer", None)
+        if visualizer is None:
+            visualizer = getattr(self.scene, "_visualizer", None)
+
+        viewer = None
+        if visualizer is not None:
+            viewer = getattr(visualizer, "viewer", None)
+            if viewer is None:
+                viewer = getattr(visualizer, "_viewer", None)
+        if viewer is None:
+            viewer = getattr(self.scene, "viewer", None)
+        if viewer is None:
+            viewer = getattr(self.scene, "_viewer", None)
+        return viewer
+
+    def _set_viewer_camera_pose(self, pos, lookat):
+        viewer = self._get_genesis_viewer()
+        if viewer is None:
+            return False
+
+        set_camera_pose = getattr(viewer, "set_camera_pose", None)
+        if callable(set_camera_pose):
+            try:
+                set_camera_pose(pos=tuple(pos), lookat=tuple(lookat))
+                return True
+            except TypeError:
+                set_camera_pose(tuple(pos), tuple(lookat))
+                return True
+
+        camera = getattr(viewer, "camera", None)
+        set_pose = getattr(camera, "set_pose", None)
+        if callable(set_pose):
+            set_pose(pos=tuple(pos), lookat=tuple(lookat))
+            return True
+        return False
+
+    def _update_viewer_camera_follow(self):
+        if self.headless or not self.viewer_camera_follow_enabled:
+            return
+
+        target = self._get_first_env_base_position()
+        if target is None:
+            return
+        if not self.viewer_camera_track_z:
+            target[2] = 0.0
+
+        camera_pos = target + self.viewer_camera_offset
+        camera_lookat = target + self.viewer_camera_lookat_offset
+        if not self._set_viewer_camera_pose(camera_pos, camera_lookat) and not self._viewer_camera_warned:
+            logger.warning("Genesis viewer camera follow is unavailable: viewer does not expose a camera pose setter.")
+            self._viewer_camera_warned = True
 
     # ----- Terrain Setup Methods -----
 
@@ -379,7 +487,39 @@ class Genesis(BaseSimulator):
         Args:
             sync_frame_time (bool): Whether to synchronize the frame time.
         """
-        return
+        if self.headless:
+            return
+
+        self._update_viewer_camera_follow()
+
+        visualizer = getattr(self.scene, "visualizer", None)
+        if visualizer is None:
+            visualizer = getattr(self.scene, "_visualizer", None)
+
+        if visualizer is not None:
+            update = getattr(visualizer, "update", None)
+            if callable(update):
+                for args, kwargs in (
+                    ((), {"force": True, "auto": True}),
+                    ((), {"force": True}),
+                    ((), {}),
+                ):
+                    try:
+                        update(*args, **kwargs)
+                        return
+                    except TypeError:
+                        continue
+
+        viewer = self._get_genesis_viewer()
+        if viewer is not None:
+            for method_name in ("render", "update", "refresh"):
+                method = getattr(viewer, method_name, None)
+                if callable(method):
+                    try:
+                        method()
+                        return
+                    except TypeError:
+                        continue
 
     @property
     def dof_state(self):

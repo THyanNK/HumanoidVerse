@@ -19,26 +19,41 @@ from loguru import logger
 import threading
 from pynput import keyboard
 
+def _toggle_camera_follow(env):
+    simulator = getattr(env, "simulator", None)
+    toggle = getattr(simulator, "toggle_viewer_camera_follow", None)
+    if not callable(toggle):
+        logger.warning("Camera follow toggle is unavailable for this simulator.")
+        return
+
+    enabled = toggle()
+    state = "enabled" if enabled else "disabled"
+    logger.info(f"Viewer camera follow {state}. Press c to toggle.")
+
 def on_press(key, env):
+    char = getattr(key, "char", None)
+    if char is None:
+        return
+
+    char = char.lower()
     try:
-        if key.char == 'n':
+        if char == 'n':
             env.next_task()
             logger.info("Moved to the next task.")
-        # Force Control
-       # Force Control
-        if hasattr(key, 'char'):
-            if key.char == '1':
-                env.apply_force_tensor[:, env.left_hand_link_index, 2] += 1.0
-                logger.info(f"Left hand force: {env.apply_force_tensor[:, env.left_hand_link_index, :]}")
-            elif key.char == '2':
-                env.apply_force_tensor[:, env.left_hand_link_index, 2] -= 1.0
-                logger.info(f"Left hand force: {env.apply_force_tensor[:, env.left_hand_link_index, :]}")
-            elif key.char == '3':
-                env.apply_force_tensor[:, env.right_hand_link_index, 2] += 1.0
-                logger.info(f"Right hand force: {env.apply_force_tensor[:, env.right_hand_link_index, :]}")
-            elif key.char == '4':
-                env.apply_force_tensor[:, env.right_hand_link_index, 2] -= 1.0
-                logger.info(f"Right hand force: {env.apply_force_tensor[:, env.right_hand_link_index, :]}")
+        elif char == 'c':
+            _toggle_camera_follow(env)
+        elif char == '1':
+            env.apply_force_tensor[:, env.left_hand_link_index, 2] += 1.0
+            logger.info(f"Left hand force: {env.apply_force_tensor[:, env.left_hand_link_index, :]}")
+        elif char == '2':
+            env.apply_force_tensor[:, env.left_hand_link_index, 2] -= 1.0
+            logger.info(f"Left hand force: {env.apply_force_tensor[:, env.left_hand_link_index, :]}")
+        elif char == '3':
+            env.apply_force_tensor[:, env.right_hand_link_index, 2] += 1.0
+            logger.info(f"Right hand force: {env.apply_force_tensor[:, env.right_hand_link_index, :]}")
+        elif char == '4':
+            env.apply_force_tensor[:, env.right_hand_link_index, 2] -= 1.0
+            logger.info(f"Right hand force: {env.apply_force_tensor[:, env.right_hand_link_index, :]}")
     except AttributeError:
         pass
 

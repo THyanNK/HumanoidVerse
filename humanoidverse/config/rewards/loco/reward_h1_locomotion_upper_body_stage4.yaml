@@ -5,15 +5,38 @@ defaults:
   - _self_
 
 rewards:
-  set_reward: H1UpperBodyStage4ArmAmplitude
+  set_reward: H1UpperBodyStage4ShoulderPitchFocus
   set_reward_date: 20260622
   reward_scales:
-      upperbody_action_rate: -0.008
-      upperbody_dof_acc: -1.5e-8
-      upperbody_torques: -2.0e-6
-      upperbody_stationary_arm_posture: -0.20
-      upperbody_arm_endpoint_sagittal_amplitude: -20.0
+      # Relax stillness penalties so the policy is allowed to move the arms.
+      upperbody_action_rate: -0.004
+      upperbody_dof_acc: -8.0e-9
+      upperbody_torques: -8.0e-7
+      upperbody_stationary_arm_posture: 0.0
+      upperbody_elbow_posture: 0.0
+
+      # Remove indirect arm-swing objectives that can conflict with shoulder-only shaping.
+      upperbody_arm_endpoint_lateral_pos: 0.0
+      upperbody_arm_endpoint_lateral_vel: 0.0
+      upperbody_arm_endpoint_sagittal_phase: 0.0
+      upperbody_arm_endpoint_sagittal_balance: 0.0
+      upperbody_arm_endpoint_sagittal_vel_phase: 0.0
+      upperbody_arm_velocity_opposition: 0.0
+      upperbody_arm_leg_phase: 0.0
+
+      # Keep only safety/anti-cheat constraints plus direct shoulder-pitch swing shaping.
+      upperbody_arm_symmetry: -0.35
+      upperbody_arm_lateral_deviation: -1.20
+      upperbody_shoulder_pitch_limit: -0.80
+      upperbody_arm_endpoint_sagittal_amplitude: -35.0
+      upperbody_teacher_arm_swing_pitch: -16.0
+      upperbody_teacher_arm_swing_velocity: -0.04
 
   upper_body:
-    arm_endpoint_sagittal_min_delta: 0.08
+    arm_lateral_deadband: 0.08
+    shoulder_pitch_soft_limit: 0.70
+    arm_endpoint_sagittal_min_delta: 0.10
     arm_endpoint_sagittal_amplitude_deadband: 0.01
+    teacher_swing_frequency: 0.75
+    teacher_swing_phase_offset: 0.0
+    teacher_shoulder_pitch_amplitude: 0.30
