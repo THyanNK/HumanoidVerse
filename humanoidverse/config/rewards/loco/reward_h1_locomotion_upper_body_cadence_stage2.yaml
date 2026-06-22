@@ -1,0 +1,64 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage2
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyCadenceStage2ShoulderPitch
+  set_reward_date: 20260622
+  reward_scales:
+      tracking_lin_vel: 2.5
+      tracking_lin_vel_x: 1.5
+      feet_air_time: 0.9
+      feet_air_time_target: 1.1
+      feet_single_stance_time: 0.8
+      penalty_feet_air_time_short: -3.5
+      penalty_feet_swing_height: -4.5
+      penalty_slippage: -0.8
+      feet_heading_alignment: -0.2
+      upperbody_arm_endpoint_sagittal_phase: -0.45
+      upperbody_arm_endpoint_sagittal_vel_phase: -0.01
+      upperbody_arm_leg_phase: -0.025
+
+  upper_body:
+    arm_endpoint_sagittal_phase_gain: 0.06
+    arm_endpoint_sagittal_vel_phase_gain: 0.025
+    arm_leg_phase_gain: 0.12
+
+  gait:
+    moving_command_min_speed: 0.12
+    contact_force_threshold: 1.0
+    feet_air_time_min: 0.26
+    feet_air_time_target: 0.38
+    feet_single_stance_time_target: 0.24
+    feet_swing_height_target: 0.12
+
+  reward_penalty_reward_names : [
+    "penalty_torques",
+    "penalty_dof_acc",
+    "penalty_dof_vel",
+    "penalty_action_rate",
+    "penalty_feet_contact_forces",
+    "penalty_stumble",
+    "penalty_slippage",
+    "penalty_feet_ori",
+    "penalty_in_the_air",
+    "limits_dof_pos",
+    "limits_dof_vel",
+    "limits_torque",
+    "termination",
+    "penalty_low_forward_speed",
+    "penalty_backward_vel",
+    "penalty_heading_error",
+    "penalty_lateral_vel",
+    "upperbody_action_rate",
+    "upperbody_dof_acc",
+    "upperbody_torques",
+    "upperbody_shoulder_pitch_limit",
+    "upperbody_stationary_arm_posture",
+    "upperbody_arm_leg_phase",
+    "upperbody_arm_endpoint_sagittal_phase",
+    "upperbody_arm_endpoint_sagittal_vel_phase",
+    "upperbody_arm_velocity_opposition"
+  ]

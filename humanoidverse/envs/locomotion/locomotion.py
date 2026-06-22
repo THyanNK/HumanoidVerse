@@ -34,6 +34,20 @@ class LeggedRobotLocomotion(LeggedRobotBase):
             (self.num_envs, 4), dtype=torch.float32, device=self.device
         )
         self.command_ranges = self.config.locomotion_command_ranges
+        num_feet = self.feet_indices.shape[0]
+        self.gait_air_time = torch.zeros(
+            self.num_envs, num_feet, dtype=torch.float, device=self.device, requires_grad=False
+        )
+        self.gait_contact_time = torch.zeros_like(self.gait_air_time)
+        self.gait_swing_peak_height = torch.zeros_like(self.gait_air_time)
+        self.gait_last_air_time = torch.zeros_like(self.gait_air_time)
+        self.gait_last_swing_peak_height = torch.zeros_like(self.gait_air_time)
+        self.gait_first_contact = torch.zeros(
+            self.num_envs, num_feet, dtype=torch.bool, device=self.device, requires_grad=False
+        )
+        self.gait_contact_filt = torch.zeros_like(self.gait_first_contact)
+        self.gait_last_contact = torch.zeros_like(self.gait_first_contact)
+        self.gait_last_contact_filt = torch.zeros_like(self.gait_first_contact)
 
     def _setup_simulator_control(self):
         self.simulator.commands = self.commands
@@ -56,6 +70,7 @@ class LeggedRobotLocomotion(LeggedRobotBase):
             self.command_ranges["ang_vel_yaw"][0], 
             self.command_ranges["ang_vel_yaw"][1]
         )
+        self._update_gait_timing_buffers()
 
     def _resample_commands(self, env_ids):
         self.commands[env_ids, 0] = torch_rand_float(self.command_ranges["lin_vel_x"][0], self.command_ranges["lin_vel_x"][1], (len(env_ids), 1), device=str(self.device)).squeeze(1)
@@ -68,8 +83,69 @@ class LeggedRobotLocomotion(LeggedRobotBase):
 
     def _reset_tasks_callback(self, env_ids):
         super()._reset_tasks_callback(env_ids)
+        self.gait_air_time[env_ids] = 0.0
+        self.gait_contact_time[env_ids] = 0.0
+        self.gait_swing_peak_height[env_ids] = 0.0
+        self.gait_last_air_time[env_ids] = 0.0
+        self.gait_last_swing_peak_height[env_ids] = 0.0
+        self.gait_first_contact[env_ids] = False
+        self.gait_contact_filt[env_ids] = False
+        self.gait_last_contact[env_ids] = False
+        self.gait_last_contact_filt[env_ids] = False
         if not self.is_evaluating:
             self._resample_commands(env_ids)
+
+    def _gait_reward_cfg(self, name, default):
+        cfg = self.config.rewards.get("gait", {})
+        return cfg.get(name, default)
+
+    def _gait_moving_command_mask(self):
+        min_speed = self._gait_reward_cfg("moving_command_min_speed", 0.1)
+        return (torch.norm(self.commands[:, :2], dim=1) > min_speed).float()
+
+    def _update_gait_timing_buffers(self):
+        threshold = self._gait_reward_cfg("contact_force_threshold", 1.0)
+        contact = self.simulator.contact_forces[:, self.feet_indices, 2] > threshold
+        contact_filt = torch.logical_or(contact, self.gait_last_contact)
+        had_air_time = self.gait_air_time > 0.0
+        first_contact = contact_filt & ~self.gait_last_contact_filt & had_air_time
+
+        foot_height = self.simulator._rigid_body_pos[:, self.feet_indices, 2]
+        next_air_time = self.gait_air_time + self.dt
+        next_contact_time = self.gait_contact_time + self.dt
+        swing_peak = torch.maximum(self.gait_swing_peak_height, foot_height)
+
+        self.gait_first_contact = first_contact
+        self.gait_contact_filt = contact_filt
+        self.gait_last_air_time = torch.where(
+            first_contact, next_air_time, torch.zeros_like(next_air_time)
+        )
+        self.gait_last_swing_peak_height = torch.where(
+            first_contact, swing_peak, torch.zeros_like(swing_peak)
+        )
+
+        self.gait_air_time = torch.where(contact_filt, torch.zeros_like(next_air_time), next_air_time)
+        self.gait_contact_time = torch.where(
+            contact_filt, next_contact_time, torch.zeros_like(next_contact_time)
+        )
+        self.gait_swing_peak_height = torch.where(
+            contact_filt, torch.zeros_like(swing_peak), swing_peak
+        )
+        self.gait_last_contact = contact
+        self.gait_last_contact_filt = contact_filt
+
+        moving_mask = self._gait_moving_command_mask().unsqueeze(1)
+        first_contact_f = first_contact.float() * moving_mask
+        first_contact_count = torch.sum(first_contact_f, dim=1)
+        contact_count = torch.sum(contact_filt.float(), dim=1)
+        self.log_dict["gait_first_contact_count"] = torch.mean(first_contact_count)
+        self.log_dict["gait_contact_count"] = torch.mean(contact_count)
+        self.log_dict["gait_last_air_time"] = torch.sum(
+            self.gait_last_air_time * first_contact_f
+        ) / torch.clamp(torch.sum(first_contact_f), min=1.0)
+        self.log_dict["gait_last_swing_peak_height"] = torch.sum(
+            self.gait_last_swing_peak_height * first_contact_f
+        ) / torch.clamp(torch.sum(first_contact_f), min=1.0)
 
     def set_is_evaluating(self, command=None):
         super().set_is_evaluating()
@@ -160,6 +236,34 @@ class LeggedRobotLocomotion(LeggedRobotBase):
         rew_airTime *= torch.norm(self.commands[:, :2], dim=1) > 0.1 #no reward for zero command
         self.feet_air_time *= ~contact_filt
         return rew_airTime
+
+    def _reward_feet_air_time_target(self):
+        target = self._gait_reward_cfg("feet_air_time_target", 0.45)
+        clipped_air_time = torch.clamp(self.gait_last_air_time, max=target)
+        reward = torch.sum(clipped_air_time * self.gait_first_contact.float(), dim=1)
+        return reward * self._gait_moving_command_mask()
+
+    def _reward_feet_single_stance_time(self):
+        target = self._gait_reward_cfg("feet_single_stance_time_target", 0.25)
+        contact_count = torch.sum(self.gait_contact_filt.int(), dim=1)
+        single_stance = (contact_count == 1).unsqueeze(1)
+        in_mode_time = torch.where(
+            self.gait_contact_filt, self.gait_contact_time, self.gait_air_time
+        )
+        reward = torch.min(torch.where(single_stance, in_mode_time, torch.zeros_like(in_mode_time)), dim=1).values
+        return torch.clamp(reward, max=target) * self._gait_moving_command_mask()
+
+    def _reward_penalty_feet_air_time_short(self):
+        min_air_time = self._gait_reward_cfg("feet_air_time_min", 0.30)
+        shortfall = torch.clamp(min_air_time - self.gait_last_air_time, min=0.0)
+        penalty = torch.sum(torch.square(shortfall) * self.gait_first_contact.float(), dim=1)
+        return penalty * self._gait_moving_command_mask()
+
+    def _reward_penalty_feet_swing_height(self):
+        target_height = self._gait_reward_cfg("feet_swing_height_target", 0.12)
+        shortfall = torch.clamp(target_height - self.gait_last_swing_peak_height, min=0.0)
+        penalty = torch.sum(torch.square(shortfall) * self.gait_first_contact.float(), dim=1)
+        return penalty * self._gait_moving_command_mask()
     
     def _reward_penalty_in_the_air(self):
         contact = self.simulator.contact_forces[:, self.feet_indices, 2] > 1.
