@@ -1,0 +1,19 @@
+# @package _global_
+
+defaults:
+  - /exp/locomotion_pro_stage1
+  - _self_
+
+experiment_name: H1Pro_stage6_gait_routed_Genesis
+
+algo:
+  config:
+    eval_command: [0.5, 0.0, 0.0]
+
+env:
+  config:
+    locomotion_command_ranges:
+      lin_vel_x: [0.0, 0.8]
+      lin_vel_y: [0.0, 0.0]
+      ang_vel_yaw: [-0.6, 0.6]
+      heading: [0.0, 0.0]

@@ -1,0 +1,108 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage1
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage6GaitRouted
+  set_reward_date: 20260622
+  reward_scales:
+      # Keep the working stage1 locomotion objective, then add paper-style gated terms.
+      feet_air_time: 0.25
+      feet_air_time_target: 0.60
+      feet_single_stance_time: 0.45
+      penalty_feet_air_time_short: -2.0
+      penalty_feet_swing_height: -3.0
+      stand_double_support: 0.80
+      penalty_stand_base_motion: -1.0
+      penalty_walk_knee_flexion: -0.25
+
+      # Let only shoulder pitch participate in anti-phase coordination.
+      upperbody_action_rate: -0.015
+      upperbody_shoulder_pitch_limit: -0.55
+      upperbody_stationary_arm_posture: -0.50
+      upperbody_arm_symmetry: -0.08
+      upperbody_arm_velocity_opposition: -0.01
+      upperbody_arm_leg_phase: -0.03
+
+  upper_body:
+    # Inherit stage1, but release shoulder pitch only. Torso, shoulder roll/yaw, and elbows stay locked.
+    locked_action_dof_names: [
+      "torso_joint",
+      "left_shoulder_roll_joint", "left_shoulder_yaw_joint", "left_elbow_joint",
+      "right_shoulder_roll_joint", "right_shoulder_yaw_joint", "right_elbow_joint"
+    ]
+    locked_reward_dof_names: [
+      "torso_joint",
+      "left_shoulder_roll_joint", "left_shoulder_yaw_joint", "left_elbow_joint",
+      "right_shoulder_roll_joint", "right_shoulder_yaw_joint", "right_elbow_joint"
+    ]
+    locked_dof_deadband: 0.04
+    arm_posture_deadband: 0.25
+    shoulder_pitch_soft_limit: 0.45
+    stationary_arm_max_command_speed: 0.12
+    use_straight_walk_arm_swing_mask: True
+    arm_swing_min_forward_speed: 0.22
+    arm_swing_max_lateral_command: 0.05
+    arm_swing_max_yaw_command: 0.65
+    arm_swing_speed_gain_base: 0.45
+    arm_swing_speed_gain_slope: 0.25
+    arm_swing_speed_gain_ref: 0.8
+    arm_swing_speed_gain_min: 0.35
+    arm_swing_speed_gain_max: 0.75
+    arm_leg_phase_gain: 0.12
+    arm_leg_velocity_phase_gain: 0.0
+    arm_leg_phase_min_command_speed: 0.20
+
+  gait:
+    # Gait routing: stand rewards only near zero command, walk rewards only during straight walking.
+    moving_command_min_speed: 0.20
+    stand_command_max_speed: 0.10
+    walk_command_min_speed: 0.20
+    straight_walk_min_forward_speed: 0.22
+    straight_walk_max_lateral_command: 0.05
+    straight_walk_max_yaw_command: 0.65
+    use_straight_walk_reward_mask: True
+    contact_force_threshold: 1.0
+    stand_min_contact_count: 2
+    stand_yaw_motion_weight: 0.25
+    feet_air_time_min: 0.22
+    feet_air_time_target: 0.35
+    feet_single_stance_time_target: 0.20
+    feet_swing_height_target: 0.10
+    walk_knee_dof_names: ["left_knee_joint", "right_knee_joint"]
+    walk_knee_flexion_soft_limit: 1.05
+
+  reward_penalty_reward_names : [
+    "penalty_torques",
+    "penalty_dof_acc",
+    "penalty_dof_vel",
+    "penalty_action_rate",
+    "penalty_feet_contact_forces",
+    "penalty_stumble",
+    "penalty_slippage",
+    "penalty_feet_ori",
+    "penalty_in_the_air",
+    "limits_dof_pos",
+    "limits_dof_vel",
+    "limits_torque",
+    "termination",
+    "penalty_low_forward_speed",
+    "penalty_backward_vel",
+    "penalty_heading_error",
+    "penalty_lateral_vel",
+    "penalty_feet_air_time_short",
+    "penalty_feet_swing_height",
+    "penalty_stand_base_motion",
+    "penalty_walk_knee_flexion",
+    "upperbody_action_rate",
+    "upperbody_dof_acc",
+    "upperbody_torques",
+    "upperbody_shoulder_pitch_limit",
+    "upperbody_stationary_arm_posture",
+    "upperbody_arm_symmetry",
+    "upperbody_arm_velocity_opposition",
+    "upperbody_arm_leg_phase"
+  ]
+

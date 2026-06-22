@@ -8,9 +8,12 @@ rewards:
   set_reward: H1UpperBodyStage5SmallShoulderSwing
   set_reward_date: 20260622
   reward_scales:
-      upperbody_teacher_arm_swing_pitch: -8.0
-      upperbody_teacher_arm_swing_velocity: 0.0
-      upperbody_arm_endpoint_sagittal_amplitude: -10.0
+    # Relax action-rate smoothing so small shoulder swing can emerge.
+    penalty_action_rate: -0.005
+    upperbody_action_rate: 0.0
+    upperbody_teacher_arm_swing_pitch: -8.0
+    upperbody_teacher_arm_swing_velocity: 0.0
+    upperbody_arm_endpoint_sagittal_amplitude: -10.0
 
   upper_body:
     teacher_shoulder_pitch_amplitude: 0.08

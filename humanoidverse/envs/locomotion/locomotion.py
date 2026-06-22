@@ -101,7 +101,36 @@ class LeggedRobotLocomotion(LeggedRobotBase):
 
     def _gait_moving_command_mask(self):
         min_speed = self._gait_reward_cfg("moving_command_min_speed", 0.1)
-        return (torch.norm(self.commands[:, :2], dim=1) > min_speed).float()
+        return (self._gait_command_speed() > min_speed).float()
+
+    def _gait_command_speed(self):
+        return torch.norm(self.commands[:, :2], dim=1)
+
+    def _gait_stand_command_mask(self):
+        max_speed = self._gait_reward_cfg("stand_command_max_speed", 0.1)
+        return (self._gait_command_speed() <= max_speed).float()
+
+    def _gait_walk_command_mask(self):
+        min_speed = self._gait_reward_cfg(
+            "walk_command_min_speed",
+            self._gait_reward_cfg("moving_command_min_speed", 0.1),
+        )
+        return (self._gait_command_speed() > min_speed).float()
+
+    def _gait_straight_walk_command_mask(self):
+        min_forward = self._gait_reward_cfg("straight_walk_min_forward_speed", 0.15)
+        max_lateral = self._gait_reward_cfg("straight_walk_max_lateral_command", 1.0e6)
+        max_yaw = self._gait_reward_cfg("straight_walk_max_yaw_command", 1.0e6)
+        return (
+            (self.commands[:, 0] > min_forward)
+            & (torch.abs(self.commands[:, 1]) <= max_lateral)
+            & (torch.abs(self.commands[:, 2]) <= max_yaw)
+        ).float()
+
+    def _gait_walk_reward_mask(self):
+        if self._gait_reward_cfg("use_straight_walk_reward_mask", False):
+            return self._gait_straight_walk_command_mask()
+        return self._gait_walk_command_mask()
 
     def _update_gait_timing_buffers(self):
         threshold = self._gait_reward_cfg("contact_force_threshold", 1.0)
@@ -146,6 +175,9 @@ class LeggedRobotLocomotion(LeggedRobotBase):
         self.log_dict["gait_last_swing_peak_height"] = torch.sum(
             self.gait_last_swing_peak_height * first_contact_f
         ) / torch.clamp(torch.sum(first_contact_f), min=1.0)
+        self.log_dict["gait_stand_mask"] = torch.mean(self._gait_stand_command_mask())
+        self.log_dict["gait_walk_mask"] = torch.mean(self._gait_walk_command_mask())
+        self.log_dict["gait_straight_walk_mask"] = torch.mean(self._gait_straight_walk_command_mask())
 
     def set_is_evaluating(self, command=None):
         super().set_is_evaluating()
@@ -264,6 +296,36 @@ class LeggedRobotLocomotion(LeggedRobotBase):
         shortfall = torch.clamp(target_height - self.gait_last_swing_peak_height, min=0.0)
         penalty = torch.sum(torch.square(shortfall) * self.gait_first_contact.float(), dim=1)
         return penalty * self._gait_moving_command_mask()
+
+    def _reward_stand_double_support(self):
+        min_contacts = self._gait_reward_cfg("stand_min_contact_count", self.feet_indices.shape[0])
+        contact_count = torch.sum(self.gait_contact_filt.float(), dim=1)
+        return (contact_count >= min_contacts).float() * self._gait_stand_command_mask()
+
+    def _reward_penalty_stand_base_motion(self):
+        yaw_weight = self._gait_reward_cfg("stand_yaw_motion_weight", 0.25)
+        lin_motion = torch.sum(torch.square(self.base_lin_vel[:, :2]), dim=1)
+        yaw_motion = torch.square(self.base_ang_vel[:, 2])
+        return (lin_motion + yaw_weight * yaw_motion) * self._gait_stand_command_mask()
+
+    def _reward_penalty_walk_knee_flexion(self):
+        knee_names = list(
+            self._gait_reward_cfg(
+                "walk_knee_dof_names",
+                ["left_knee_joint", "right_knee_joint"],
+            )
+        )
+        missing = [name for name in knee_names if name not in self.dof_names]
+        if missing:
+            raise ValueError(f"Unknown DOF names in rewards.gait.walk_knee_dof_names: {missing}")
+        knee_indices = torch.as_tensor(
+            [self.dof_names.index(name) for name in knee_names],
+            dtype=torch.long,
+            device=self.device,
+        )
+        soft_limit = self._gait_reward_cfg("walk_knee_flexion_soft_limit", 1.05)
+        excess = torch.clip(self.simulator.dof_pos[:, knee_indices] - soft_limit, min=0.0)
+        return torch.sum(torch.square(excess), dim=1) * self._gait_walk_reward_mask()
     
     def _reward_penalty_in_the_air(self):
         contact = self.simulator.contact_forces[:, self.feet_indices, 2] > 1.
