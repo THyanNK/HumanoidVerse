@@ -13,11 +13,16 @@ domain_rand:
     "left_shoulder_pitch_joint", "left_shoulder_roll_joint", "left_shoulder_yaw_joint", "left_elbow_joint",
     "right_shoulder_pitch_joint", "right_shoulder_roll_joint", "right_shoulder_yaw_joint", "right_elbow_joint"
   ]
+  upper_body_random_action_dof_scales: [
+    0.35,
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0
+  ]
   # Pulse mode makes the disturbance visually separable: hit the upper body,
   # then leave a clean recovery window.
   upper_body_random_action_mode: pulse
-  upper_body_random_action_amp: 0.60
-  upper_body_random_action_eval_amp: 0.90
+  upper_body_random_action_amp: 1.00
+  upper_body_random_action_eval_amp: 2.00
   upper_body_random_action_resample_s: [0.20, 0.50]
   upper_body_random_action_start_delay_s: [1.00, 1.50]
   upper_body_random_action_active_s: [0.35, 0.70]

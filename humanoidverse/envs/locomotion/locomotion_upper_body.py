@@ -134,6 +134,22 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             dtype=torch.long,
             device=self.device,
         )
+        scales = list(
+            self.config.domain_rand.get(
+                "upper_body_random_action_dof_scales",
+                [1.0] * len(names),
+            )
+        )
+        if len(scales) != len(names):
+            raise ValueError(
+                "domain_rand.upper_body_random_action_dof_scales must have the same length as "
+                "domain_rand.upper_body_random_action_dof_names"
+            )
+        self.upper_body_random_action_scales = torch.as_tensor(
+            scales,
+            dtype=torch.float,
+            device=self.device,
+        ).unsqueeze(0)
         self.upper_body_random_action_buf = torch.zeros(
             self.num_envs,
             self.num_dof,
@@ -241,7 +257,7 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             )
             * 2.0
             - 1.0
-        ) * amp
+        ) * amp * self.upper_body_random_action_scales
         self.upper_body_random_action_buf[
             env_ids[:, None],
             self.upper_body_random_action_indices,
