@@ -147,6 +147,12 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             device=self.device,
             requires_grad=False,
         )
+        self.upper_body_random_action_active = torch.zeros(
+            self.num_envs,
+            dtype=torch.bool,
+            device=self.device,
+            requires_grad=False,
+        )
 
     def _upper_body_random_action_enabled(self):
         if not self.randomize_upper_body_actions:
@@ -160,15 +166,18 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             return False
         return True
 
-    def _sample_upper_body_random_action_interval_steps(self, num_envs):
-        interval_s = self.config.domain_rand.get(
-            "upper_body_random_action_resample_s",
-            [0.2, 0.5],
-        )
-        min_s = float(interval_s[0])
-        max_s = float(interval_s[1])
-        min_steps = max(1, int(round(min_s / self.dt)))
+    def _sample_upper_body_random_action_steps(self, cfg_name, default, num_envs, min_steps=1):
+        interval_s = self.config.domain_rand.get(cfg_name, default)
+        if isinstance(interval_s, (int, float)):
+            min_s = float(interval_s)
+            max_s = float(interval_s)
+        else:
+            min_s = float(interval_s[0])
+            max_s = float(interval_s[1])
+        min_steps = max(min_steps, int(round(min_s / self.dt)))
         max_steps = max(min_steps, int(round(max_s / self.dt)))
+        if max_steps == 0:
+            return torch.zeros(num_envs, dtype=torch.long, device=self.device)
         return torch.randint(
             min_steps,
             max_steps + 1,
@@ -177,40 +186,117 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             device=self.device,
         )
 
+    def _sample_upper_body_random_action_interval_steps(self, num_envs):
+        return self._sample_upper_body_random_action_steps(
+            "upper_body_random_action_resample_s",
+            [0.2, 0.5],
+            num_envs,
+        )
+
+    def _sample_upper_body_random_action_active_steps(self, num_envs):
+        return self._sample_upper_body_random_action_steps(
+            "upper_body_random_action_active_s",
+            [0.35, 0.70],
+            num_envs,
+        )
+
+    def _sample_upper_body_random_action_recovery_steps(self, num_envs):
+        return self._sample_upper_body_random_action_steps(
+            "upper_body_random_action_recovery_s",
+            [1.0, 2.0],
+            num_envs,
+        )
+
+    def _sample_upper_body_random_action_start_delay_steps(self, num_envs):
+        if "upper_body_random_action_start_delay_s" not in self.config.domain_rand:
+            return torch.zeros(num_envs, dtype=torch.long, device=self.device)
+        return self._sample_upper_body_random_action_steps(
+            "upper_body_random_action_start_delay_s",
+            [0.0, 0.0],
+            num_envs,
+            min_steps=0,
+        )
+
+    def _upper_body_random_action_amplitude(self):
+        if getattr(self, "is_evaluating", False):
+            return float(
+                self.config.domain_rand.get(
+                    "upper_body_random_action_eval_amp",
+                    self.config.domain_rand.get("upper_body_random_action_amp", 0.0),
+                )
+            )
+        return float(self.config.domain_rand.get("upper_body_random_action_amp", 0.0))
+
+    def _sample_upper_body_random_action_values(self, env_ids):
+        amp = self._upper_body_random_action_amplitude()
+        if amp <= 0.0:
+            return
+
+        random_actions = (
+            torch.rand(
+                len(env_ids),
+                self.upper_body_random_action_indices.numel(),
+                dtype=torch.float,
+                device=self.device,
+            )
+            * 2.0
+            - 1.0
+        ) * amp
+        self.upper_body_random_action_buf[
+            env_ids[:, None],
+            self.upper_body_random_action_indices,
+        ] = random_actions
+
     def _sample_upper_body_random_actions(self, env_ids):
         if len(env_ids) == 0:
             return
 
         self.upper_body_random_action_buf[env_ids] = 0.0
-        amp = float(self.config.domain_rand.get("upper_body_random_action_amp", 0.0))
-        if amp > 0.0:
-            random_actions = (
-                torch.rand(
-                    len(env_ids),
-                    self.upper_body_random_action_indices.numel(),
-                    dtype=torch.float,
-                    device=self.device,
-                )
-                * 2.0
-                - 1.0
-            ) * amp
-            self.upper_body_random_action_buf[
-                env_ids[:, None],
-                self.upper_body_random_action_indices,
-            ] = random_actions
-
+        self._sample_upper_body_random_action_values(env_ids)
         self.upper_body_random_action_counter[env_ids] = (
             self._sample_upper_body_random_action_interval_steps(len(env_ids))
         )
+
+    def _update_upper_body_random_action_pulses(self, env_ids):
+        if len(env_ids) == 0:
+            return
+
+        next_active = torch.logical_not(self.upper_body_random_action_active[env_ids])
+        active_env_ids = env_ids[next_active]
+        recovery_env_ids = env_ids[~next_active]
+
+        if len(active_env_ids) > 0:
+            self.upper_body_random_action_active[active_env_ids] = True
+            self.upper_body_random_action_buf[active_env_ids] = 0.0
+            self._sample_upper_body_random_action_values(active_env_ids)
+            self.upper_body_random_action_counter[active_env_ids] = (
+                self._sample_upper_body_random_action_active_steps(len(active_env_ids))
+            )
+
+        if len(recovery_env_ids) > 0:
+            self.upper_body_random_action_active[recovery_env_ids] = False
+            self.upper_body_random_action_buf[recovery_env_ids] = 0.0
+            self.upper_body_random_action_counter[recovery_env_ids] = (
+                self._sample_upper_body_random_action_recovery_steps(len(recovery_env_ids))
+            )
+
+    def _update_upper_body_random_actions(self):
+        refresh_env_ids = (self.upper_body_random_action_counter <= 0).nonzero(
+            as_tuple=False
+        ).flatten()
+        mode = self.config.domain_rand.get("upper_body_random_action_mode", "continuous")
+        if mode == "continuous":
+            self._sample_upper_body_random_actions(refresh_env_ids)
+        elif mode == "pulse":
+            self._update_upper_body_random_action_pulses(refresh_env_ids)
+        else:
+            raise ValueError(f"Unknown domain_rand.upper_body_random_action_mode: {mode}")
 
     def _apply_upper_body_random_actions(self):
         if not self._upper_body_random_action_enabled():
             return
 
-        refresh_env_ids = (self.upper_body_random_action_counter <= 0).nonzero(
-            as_tuple=False
-        ).flatten()
-        self._sample_upper_body_random_actions(refresh_env_ids)
+        self._update_upper_body_random_actions()
 
         indices = self.upper_body_random_action_indices
         self.actions_after_delay[:, indices] += self.upper_body_random_action_buf[:, indices]
@@ -225,6 +311,9 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         random_action_abs = torch.abs(self.upper_body_random_action_buf[:, indices])
         self.log_dict["upper_body_random_action_abs"] = torch.mean(random_action_abs)
         self.log_dict["upper_body_random_action_max"] = torch.max(random_action_abs)
+        self.log_dict["upper_body_random_action_active"] = torch.mean(
+            self.upper_body_random_action_active.float()
+        )
 
     def _pre_physics_step(self, actions):
         super()._pre_physics_step(actions)
@@ -237,7 +326,10 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         super()._reset_tasks_callback(env_ids)
         if hasattr(self, "upper_body_random_action_buf"):
             self.upper_body_random_action_buf[env_ids] = 0.0
-            self.upper_body_random_action_counter[env_ids] = 0
+            self.upper_body_random_action_active[env_ids] = False
+            self.upper_body_random_action_counter[env_ids] = (
+                self._sample_upper_body_random_action_start_delay_steps(len(env_ids))
+            )
 
     def _centered_dof_pos(self, index):
         return self.simulator.dof_pos[:, index] - self.default_dof_pos[:, index]
