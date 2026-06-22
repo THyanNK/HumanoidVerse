@@ -1,0 +1,17 @@
+# @package _global_
+
+defaults:
+  - NO_domain_rand
+  - _self_
+
+domain_rand:
+  # Stage8 disturbance: inject held random action offsets only on arm DOFs.
+  # Lower-body policy actions are left untouched.
+  randomize_upper_body_actions: True
+  upper_body_random_action_dof_names: [
+    "left_shoulder_pitch_joint", "left_shoulder_roll_joint", "left_shoulder_yaw_joint", "left_elbow_joint",
+    "right_shoulder_pitch_joint", "right_shoulder_roll_joint", "right_shoulder_yaw_joint", "right_elbow_joint"
+  ]
+  upper_body_random_action_amp: 0.20
+  upper_body_random_action_resample_s: [0.20, 0.50]
+  upper_body_random_action_apply_during_eval: True

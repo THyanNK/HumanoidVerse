@@ -1,0 +1,7 @@
+# @package _global_
+
+defaults:
+  - /exp/locomotion_pro_stage7
+  - _self_
+
+experiment_name: H1Pro_stage8_random_upper_actions_Genesis

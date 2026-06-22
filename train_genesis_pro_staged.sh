@@ -7,6 +7,7 @@ cd "$HV_DIR"
 PYTHON_BIN="${PYTHON_BIN:-/inspire/qb-ilm/project/robot-reasoning/public/zhetao/HumanoidVerse/hgen/bin/python}"
 STAGE="${STAGE:-1}"
 HEADLESS="${HEADLESS:-True}"
+DOMAIN_RAND_CONFIG="${DOMAIN_RAND_CONFIG:-}"
 EXTRA_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -30,6 +31,8 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+DEFAULT_DOMAIN_RAND_CONFIG="NO_domain_rand"
 
 case "$STAGE" in
   1|stage1|locked)
@@ -74,19 +77,27 @@ case "$STAGE" in
     REWARD_CONFIG="loco/reward_h1_locomotion_upper_body_stage7"
     DEFAULT_EXPERIMENT_NAME="H1Pro_stage7_larger_arm_swing_Genesis"
     ;;
+  8|stage8|randomupper|upperrand|disturbance)
+    STAGE_ID="stage8"
+    EXP_CONFIG="locomotion_pro_stage8"
+    REWARD_CONFIG="loco/reward_h1_locomotion_upper_body_stage8"
+    DEFAULT_EXPERIMENT_NAME="H1Pro_stage8_random_upper_actions_Genesis"
+    DEFAULT_DOMAIN_RAND_CONFIG="upper_body_random_action"
+    ;;
   *)
-    echo "Unknown STAGE '$STAGE'. Use 1, 2, 3, 4, 5, 6, or 7." >&2
+    echo "Unknown STAGE '$STAGE'. Use 1, 2, 3, 4, 5, 6, 7, or 8." >&2
     exit 1
     ;;
 esac
 
+DOMAIN_RAND_CONFIG="${DOMAIN_RAND_CONFIG:-$DEFAULT_DOMAIN_RAND_CONFIG}"
 RUN_TIMESTAMP="${RUN_TIMESTAMP:-$(date +%Y%m%d_%H%M%S)}"
 DEFAULT_EXPERIMENT_DIR="logs/${RUN_TIMESTAMP}-pro-${STAGE_ID}"
 
 exec "$PYTHON_BIN" humanoidverse/train_agent.py \
   +simulator=genesis \
   +exp="$EXP_CONFIG" \
-  +domain_rand=NO_domain_rand \
+  +domain_rand="$DOMAIN_RAND_CONFIG" \
   +rewards="$REWARD_CONFIG" \
   +robot=h1/h1 \
   +terrain=terrain_locomotion_plane \

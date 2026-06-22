@@ -80,6 +80,7 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
         self.locked_upper_body_reward_indices = self._dof_indices_from_reward_cfg(
             "locked_reward_dof_names"
         )
+        self._setup_upper_body_random_actions()
 
     def _upper_body_reward_cfg(self, name, default):
         cfg = self.config.rewards.get("upper_body", {})
@@ -96,12 +97,147 @@ class LeggedRobotLocomotionUpperBody(LeggedRobotLocomotion):
             device=self.device,
         )
 
+    def _setup_upper_body_random_actions(self):
+        self.randomize_upper_body_actions = bool(
+            self.config.domain_rand.get("randomize_upper_body_actions", False)
+        )
+        default_names = list(self.config.robot.get("upper_dof_names", []))
+        if not default_names:
+            default_names = [
+                self.dof_names[index]
+                for index in self.upper_body_reward_indices.detach().cpu().tolist()
+            ]
+        names = list(
+            self.config.domain_rand.get(
+                "upper_body_random_action_dof_names",
+                default_names,
+            )
+        )
+
+        missing = [name for name in names if name not in self.name_to_dof_index]
+        if missing:
+            raise ValueError(f"Unknown DOF names in domain_rand.upper_body_random_action_dof_names: {missing}")
+
+        lower_body_names = [
+            name
+            for name in names
+            if name not in set(default_names)
+        ]
+        if lower_body_names:
+            raise ValueError(
+                "domain_rand.upper_body_random_action_dof_names must only contain upper-body DOFs; "
+                f"got lower-body DOFs: {lower_body_names}"
+            )
+
+        self.upper_body_random_action_indices = torch.as_tensor(
+            [self.name_to_dof_index[name] for name in names],
+            dtype=torch.long,
+            device=self.device,
+        )
+        self.upper_body_random_action_buf = torch.zeros(
+            self.num_envs,
+            self.num_dof,
+            dtype=torch.float,
+            device=self.device,
+            requires_grad=False,
+        )
+        self.upper_body_random_action_counter = torch.zeros(
+            self.num_envs,
+            dtype=torch.long,
+            device=self.device,
+            requires_grad=False,
+        )
+
+    def _upper_body_random_action_enabled(self):
+        if not self.randomize_upper_body_actions:
+            return False
+        if self.upper_body_random_action_indices.numel() == 0:
+            return False
+        if getattr(self, "is_evaluating", False) and not self.config.domain_rand.get(
+            "upper_body_random_action_apply_during_eval",
+            True,
+        ):
+            return False
+        return True
+
+    def _sample_upper_body_random_action_interval_steps(self, num_envs):
+        interval_s = self.config.domain_rand.get(
+            "upper_body_random_action_resample_s",
+            [0.2, 0.5],
+        )
+        min_s = float(interval_s[0])
+        max_s = float(interval_s[1])
+        min_steps = max(1, int(round(min_s / self.dt)))
+        max_steps = max(min_steps, int(round(max_s / self.dt)))
+        return torch.randint(
+            min_steps,
+            max_steps + 1,
+            (num_envs,),
+            dtype=torch.long,
+            device=self.device,
+        )
+
+    def _sample_upper_body_random_actions(self, env_ids):
+        if len(env_ids) == 0:
+            return
+
+        self.upper_body_random_action_buf[env_ids] = 0.0
+        amp = float(self.config.domain_rand.get("upper_body_random_action_amp", 0.0))
+        if amp > 0.0:
+            random_actions = (
+                torch.rand(
+                    len(env_ids),
+                    self.upper_body_random_action_indices.numel(),
+                    dtype=torch.float,
+                    device=self.device,
+                )
+                * 2.0
+                - 1.0
+            ) * amp
+            self.upper_body_random_action_buf[
+                env_ids[:, None],
+                self.upper_body_random_action_indices,
+            ] = random_actions
+
+        self.upper_body_random_action_counter[env_ids] = (
+            self._sample_upper_body_random_action_interval_steps(len(env_ids))
+        )
+
+    def _apply_upper_body_random_actions(self):
+        if not self._upper_body_random_action_enabled():
+            return
+
+        refresh_env_ids = (self.upper_body_random_action_counter <= 0).nonzero(
+            as_tuple=False
+        ).flatten()
+        self._sample_upper_body_random_actions(refresh_env_ids)
+
+        indices = self.upper_body_random_action_indices
+        self.actions_after_delay[:, indices] += self.upper_body_random_action_buf[:, indices]
+        clip_action_limit = self.config.robot.control.action_clip_value
+        self.actions_after_delay[:, indices] = torch.clip(
+            self.actions_after_delay[:, indices],
+            -clip_action_limit,
+            clip_action_limit,
+        )
+        self.upper_body_random_action_counter -= 1
+
+        random_action_abs = torch.abs(self.upper_body_random_action_buf[:, indices])
+        self.log_dict["upper_body_random_action_abs"] = torch.mean(random_action_abs)
+        self.log_dict["upper_body_random_action_max"] = torch.max(random_action_abs)
+
     def _pre_physics_step(self, actions):
         super()._pre_physics_step(actions)
-        if self.locked_upper_body_action_indices.numel() == 0:
-            return
-        self.actions[:, self.locked_upper_body_action_indices] = 0.0
-        self.actions_after_delay[:, self.locked_upper_body_action_indices] = 0.0
+        if self.locked_upper_body_action_indices.numel() > 0:
+            self.actions[:, self.locked_upper_body_action_indices] = 0.0
+            self.actions_after_delay[:, self.locked_upper_body_action_indices] = 0.0
+        self._apply_upper_body_random_actions()
+
+    def _reset_tasks_callback(self, env_ids):
+        super()._reset_tasks_callback(env_ids)
+        if hasattr(self, "upper_body_random_action_buf"):
+            self.upper_body_random_action_buf[env_ids] = 0.0
+            self.upper_body_random_action_counter[env_ids] = 0
 
     def _centered_dof_pos(self, index):
         return self.simulator.dof_pos[:, index] - self.default_dof_pos[:, index]
