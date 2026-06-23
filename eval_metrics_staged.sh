@@ -33,6 +33,10 @@ while [[ $# -gt 0 ]]; do
       EXTRA_ARGS+=("++$1")
       shift
       ;;
+    headless=*|num_envs=*)
+      EXTRA_ARGS+=("+$1")
+      shift
+      ;;
     *)
       EXTRA_ARGS+=("$1")
       shift
