@@ -13,7 +13,7 @@ from humanoidverse.agents.callbacks.base_callback import RL_EvalCallback
 class EvalMetricsCallback(RL_EvalCallback):
     """Finite-horizon evaluation metrics for poster-ready locomotion summaries."""
 
-    def __init__(self, config, training_loop):
+    def __init__(self, training_loop, **config):
         super().__init__(config, training_loop)
         self.env = self.training_loop.env
         self.max_steps = int(self.config.get("max_steps", 1000))
