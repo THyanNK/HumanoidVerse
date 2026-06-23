@@ -632,6 +632,8 @@ class PPO(BaseAlgo):
             actor_state = self.env_step(actor_state)
             actor_state = self._post_eval_env_step(actor_state)
             step += 1
+            if actor_state.get("stop", False):
+                break
         self._post_evaluate_policy()
 
     def _create_actor_state(self):
