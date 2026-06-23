@@ -17,7 +17,6 @@ from humanoidverse.utils.config_utils import *  # noqa: E402, F403
 from loguru import logger
 
 import threading
-from pynput import keyboard
 
 def _toggle_camera_follow(env):
     simulator = getattr(env, "simulator", None)
@@ -58,8 +57,20 @@ def on_press(key, env):
         pass
 
 def listen_for_keypress(env):
+    try:
+        from pynput import keyboard
+    except ImportError as exc:
+        logger.warning(f"Keyboard listener disabled: {exc}")
+        return
+
     with keyboard.Listener(on_press=lambda key: on_press(key, env)) as listener:
         listener.join()
+
+
+def should_start_key_listener(env):
+    if getattr(env, "headless", True):
+        return False
+    return bool(os.environ.get("DISPLAY"))
 
 
 # from humanoidverse.envs.base_task.base_task import BaseTask
@@ -161,10 +172,13 @@ def main(override_config: OmegaConf):
     config.env.config.ckpt_dir = str(checkpoint.parent) # commented out for now, might need it back to save motion
     env = instantiate(config.env, device=device)
 
-    # Start a thread to listen for key press
-    key_listener_thread = threading.Thread(target=listen_for_keypress, args=(env,))
-    key_listener_thread.daemon = True
-    key_listener_thread.start()
+    # Start a thread to listen for key press only when a viewer/display exists.
+    if should_start_key_listener(env):
+        key_listener_thread = threading.Thread(target=listen_for_keypress, args=(env,))
+        key_listener_thread.daemon = True
+        key_listener_thread.start()
+    else:
+        logger.info("Keyboard listener disabled for headless/no-DISPLAY evaluation.")
 
     algo: BaseAlgo = instantiate(config.algo, env=env, device=device, log_dir=None)
     algo.setup()

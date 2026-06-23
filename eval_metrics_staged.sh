@@ -10,7 +10,7 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
-PYTHON_BIN="${PYTHON_BIN:-/home/agilex/czt/HumanoidVerse/hgen/bin/python}"
+PYTHON_BIN="${PYTHON_BIN:-python}"
 CHECKPOINT="$1"
 shift
 
