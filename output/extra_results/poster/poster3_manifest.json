@@ -1,0 +1,466 @@
+{
+  "source": "output\\poster_3\\gpt_image2_poster.png",
+  "width": 1024,
+  "height": 1536,
+  "elements": [
+    {
+      "file": "poster3_element_00_background.png",
+      "x": 0,
+      "y": 0,
+      "width": 1024,
+      "height": 1536,
+      "role": "page background",
+      "notes": "template background resized to poster, template logo area cleaned"
+    },
+    {
+      "file": "poster3_element_01_metrics_strip_frame.png",
+      "x": 27,
+      "y": 280,
+      "width": 970,
+      "height": 100,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_02_evidence_panel_frame.png",
+      "x": 27,
+      "y": 392,
+      "width": 970,
+      "height": 619,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_03_method_panel_frame.png",
+      "x": 27,
+      "y": 1018,
+      "width": 459,
+      "height": 309,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_04_results_panel_frame.png",
+      "x": 493,
+      "y": 1018,
+      "width": 504,
+      "height": 309,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_05_story_panel_frame.png",
+      "x": 27,
+      "y": 1330,
+      "width": 459,
+      "height": 125,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_06_limitations_panel_frame.png",
+      "x": 493,
+      "y": 1330,
+      "width": 261,
+      "height": 125,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_07_conclusion_panel_frame.png",
+      "x": 762,
+      "y": 1330,
+      "width": 235,
+      "height": 125,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_08_takeaway_bar.png",
+      "x": 39,
+      "y": 1412,
+      "width": 435,
+      "height": 32,
+      "role": "color block",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_01_frame.png",
+      "x": 39,
+      "y": 818,
+      "width": 217,
+      "height": 102,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_02_frame.png",
+      "x": 257,
+      "y": 818,
+      "width": 243,
+      "height": 102,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_03_frame.png",
+      "x": 501,
+      "y": 818,
+      "width": 251,
+      "height": 102,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_04_frame.png",
+      "x": 753,
+      "y": 818,
+      "width": 233,
+      "height": 102,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_05_frame.png",
+      "x": 39,
+      "y": 921,
+      "width": 239,
+      "height": 83,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_06_frame.png",
+      "x": 279,
+      "y": 921,
+      "width": 220,
+      "height": 83,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_07_frame.png",
+      "x": 500,
+      "y": 921,
+      "width": 253,
+      "height": 83,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_09_info_card_08_frame.png",
+      "x": 754,
+      "y": 921,
+      "width": 232,
+      "height": 83,
+      "role": "layout frame",
+      "notes": "redrawn clean layout element from source bounds"
+    },
+    {
+      "file": "poster3_element_10_metric_separator_01.png",
+      "x": 318,
+      "y": 296,
+      "width": 1,
+      "height": 68,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_10_metric_separator_02.png",
+      "x": 496,
+      "y": 296,
+      "width": 1,
+      "height": 68,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_10_metric_separator_03.png",
+      "x": 672,
+      "y": 296,
+      "width": 1,
+      "height": 68,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_10_metric_separator_04.png",
+      "x": 846,
+      "y": 296,
+      "width": 1,
+      "height": 68,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_20_temporal_rollouts_figure.png",
+      "x": 39,
+      "y": 424,
+      "width": 918,
+      "height": 389,
+      "role": "figure with native text",
+      "notes": "central rollout figure kept as a complete visual, internal labels preserved"
+    },
+    {
+      "file": "poster3_element_21_method_diagram.png",
+      "x": 40,
+      "y": 1050,
+      "width": 436,
+      "height": 218,
+      "role": "figure with native text",
+      "notes": "method diagram kept as a complete visual, internal labels preserved"
+    },
+    {
+      "file": "poster3_element_22_quantitative_chart.png",
+      "x": 508,
+      "y": 1047,
+      "width": 473,
+      "height": 241,
+      "role": "figure with native text",
+      "notes": "quantitative chart/table kept as a complete visual, internal labels preserved"
+    },
+    {
+      "file": "poster3_element_30_icon_shield.png",
+      "x": 49,
+      "y": 305,
+      "width": 43,
+      "height": 48,
+      "role": "top metric icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_31_icon_dof_hex.png",
+      "x": 337,
+      "y": 305,
+      "width": 50,
+      "height": 52,
+      "role": "top metric icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_32_icon_layers.png",
+      "x": 523,
+      "y": 307,
+      "width": 50,
+      "height": 47,
+      "role": "top metric icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_33_icon_clock.png",
+      "x": 702,
+      "y": 305,
+      "width": 54,
+      "height": 53,
+      "role": "top metric icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_34_icon_falls.png",
+      "x": 870,
+      "y": 306,
+      "width": 53,
+      "height": 53,
+      "role": "top metric icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_35_icon_problem_question.png",
+      "x": 48,
+      "y": 819,
+      "width": 18,
+      "height": 26,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_36_icon_contribution_star.png",
+      "x": 270,
+      "y": 821,
+      "width": 18,
+      "height": 18,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_37_icon_eval_clipboard.png",
+      "x": 516,
+      "y": 818,
+      "width": 20,
+      "height": 25,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_38_icon_metrics_bar.png",
+      "x": 776,
+      "y": 817,
+      "width": 21,
+      "height": 25,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_39_icon_mapping_table.png",
+      "x": 49,
+      "y": 927,
+      "width": 20,
+      "height": 24,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_40_icon_design_bulb.png",
+      "x": 289,
+      "y": 929,
+      "width": 19,
+      "height": 24,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_41_icon_result_target.png",
+      "x": 515,
+      "y": 928,
+      "width": 24,
+      "height": 25,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_42_icon_reading_eye.png",
+      "x": 779,
+      "y": 929,
+      "width": 28,
+      "height": 22,
+      "role": "info icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_43_icon_warning.png",
+      "x": 512,
+      "y": 1350,
+      "width": 27,
+      "height": 29,
+      "role": "section icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_44_icon_conclusion_check.png",
+      "x": 774,
+      "y": 1345,
+      "width": 32,
+      "height": 32,
+      "role": "section icon",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_50_story_robot_01.png",
+      "x": 41,
+      "y": 1381,
+      "width": 35,
+      "height": 42,
+      "role": "story visual",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_51_story_clipboard.png",
+      "x": 160,
+      "y": 1379,
+      "width": 31,
+      "height": 48,
+      "role": "story visual",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_52_story_robot_02.png",
+      "x": 276,
+      "y": 1380,
+      "width": 34,
+      "height": 43,
+      "role": "story visual",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_53_story_robot_03.png",
+      "x": 393,
+      "y": 1380,
+      "width": 34,
+      "height": 44,
+      "role": "story visual",
+      "notes": "background removed with local border-color alpha mask"
+    },
+    {
+      "file": "poster3_element_54_story_badge_01.png",
+      "x": 35,
+      "y": 1353,
+      "width": 22,
+      "height": 22,
+      "role": "timeline badge",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_54_story_badge_02.png",
+      "x": 154,
+      "y": 1353,
+      "width": 22,
+      "height": 22,
+      "role": "timeline badge",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_54_story_badge_03.png",
+      "x": 272,
+      "y": 1353,
+      "width": 22,
+      "height": 22,
+      "role": "timeline badge",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_54_story_badge_04.png",
+      "x": 389,
+      "y": 1353,
+      "width": 22,
+      "height": 22,
+      "role": "timeline badge",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_55_story_divider_01.png",
+      "x": 135,
+      "y": 1360,
+      "width": 1,
+      "height": 50,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_55_story_divider_02.png",
+      "x": 254,
+      "y": 1360,
+      "width": 1,
+      "height": 50,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_55_story_divider_03.png",
+      "x": 371,
+      "y": 1360,
+      "width": 1,
+      "height": 50,
+      "role": "layout divider",
+      "notes": "redrawn clean color block from source bounds"
+    },
+    {
+      "file": "poster3_element_60_logo_sii.png",
+      "x": 37,
+      "y": 17,
+      "width": 205,
+      "height": 58,
+      "role": "logo",
+      "notes": "rasterized from local sii_logo.svg with white text for header use"
+    }
+  ]
+}

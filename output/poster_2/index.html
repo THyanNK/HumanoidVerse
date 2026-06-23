@@ -1,0 +1,787 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stable Arm-Swing Humanoid Locomotion under Upper-Body Perturbations</title>
+  <style>
+    @page { size: 1189mm 841mm; margin: 0; }
+
+    :root {
+      --paper: #f7faf4;
+      --ink: #101828;
+      --soft: #344054;
+      --muted: #667085;
+      --line: #cbd5e1;
+      --panel: #ffffff;
+      --night: #111f2a;
+      --teal: #087b78;
+      --mint: #e1f6ee;
+      --gold: #bd6b0b;
+      --amber: #fff4e2;
+      --blue: #245f86;
+      --red: #b42318;
+      --green: #15803d;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #dfe8e7;
+      color: var(--ink);
+      font-family: "Avenir Next", "Inter", "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .poster {
+      width: 1189mm;
+      height: 841mm;
+      margin: 0 auto;
+      padding: 22mm 28mm 17mm;
+      background:
+        linear-gradient(90deg, rgba(8, 123, 120, 0.10), transparent 34%),
+        linear-gradient(180deg, rgba(189, 107, 11, 0.08), transparent 28%),
+        var(--paper);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .poster::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: radial-gradient(rgba(16, 24, 40, 0.08) 0.55mm, transparent 0.55mm);
+      background-size: 14mm 14mm;
+      opacity: 0.24;
+      mask-image: linear-gradient(120deg, #000 0%, transparent 70%);
+    }
+
+    .sheet {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: grid;
+      grid-template-rows: 118mm 333mm 290mm 22mm;
+      gap: 10mm;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 760mm 1fr;
+      gap: 20mm;
+      align-items: stretch;
+      border-bottom: 1.1mm solid var(--night);
+      padding-bottom: 10mm;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2.1mm 3.6mm;
+      border: 0.45mm solid var(--teal);
+      color: var(--teal);
+      background: rgba(255, 255, 255, 0.72);
+      font-size: 4.5mm;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      margin: 6mm 0 3mm;
+      font-size: 23mm;
+      line-height: 1.02;
+      font-weight: 950;
+      letter-spacing: 0;
+      max-width: 790mm;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 720mm;
+      font-size: 7.7mm;
+      line-height: 1.24;
+      color: var(--blue);
+      font-weight: 820;
+    }
+
+    .authors {
+      margin-top: 4.6mm;
+      color: var(--soft);
+      font-size: 4.8mm;
+      font-weight: 720;
+      line-height: 1.25;
+    }
+
+    .claim {
+      background:
+        linear-gradient(135deg, rgba(225, 246, 238, 0.96), rgba(255, 248, 237, 0.96)),
+        #ffffff;
+      color: var(--ink);
+      padding: 8mm 9mm;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      border: 0.55mm solid #9bd9d3;
+      border-left: 2.2mm solid var(--teal);
+      box-shadow: 0 3mm 12mm rgba(16, 24, 40, 0.10);
+    }
+
+    .claim h2 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 8.4mm;
+      line-height: 1.07;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .claim p {
+      margin: 4mm 0 0;
+      color: var(--soft);
+      font-size: 5.7mm;
+      line-height: 1.32;
+      font-weight: 700;
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3.5mm;
+      padding-top: 4.2mm;
+      border-top: 0.4mm solid rgba(8, 123, 120, 0.28);
+    }
+
+    .mini-stats strong {
+      display: block;
+      color: var(--teal);
+      font-size: 9.2mm;
+      line-height: 0.95;
+      font-weight: 950;
+    }
+
+    .mini-stats span {
+      display: block;
+      margin-top: 1.2mm;
+      color: var(--soft);
+      font-size: 3.55mm;
+      line-height: 1.14;
+      font-weight: 850;
+      text-transform: uppercase;
+    }
+
+    .band {
+      background: rgba(255, 255, 255, 0.88);
+      border: 0.55mm solid #d4dde6;
+      box-shadow: 0 2.2mm 10mm rgba(16, 24, 40, 0.07);
+      padding: 6mm;
+      min-height: 0;
+    }
+
+    .evidence {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 4mm;
+    }
+
+    .evidence-body {
+      display: grid;
+      grid-template-columns: 292mm 1fr 292mm;
+      gap: 7mm;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    .evidence-aside {
+      display: grid;
+      gap: 5mm;
+      grid-template-rows: repeat(4, minmax(0, 1fr));
+      align-content: stretch;
+      min-height: 0;
+    }
+
+    .mini-card {
+      background: #f8fafc;
+      border-left: 1.2mm solid var(--teal);
+      padding: 5.7mm 6.2mm;
+      min-height: 0;
+      display: grid;
+      align-content: start;
+    }
+
+    .mini-card.gold { border-left-color: var(--gold); background: #fff8ed; }
+    .mini-card.blue { border-left-color: var(--blue); background: #f0f7fb; }
+
+    .mini-card h3 {
+      margin: 0 0 3mm;
+      font-size: 6.35mm;
+      line-height: 1.08;
+      font-weight: 950;
+    }
+
+    .mini-card p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 4.75mm;
+      line-height: 1.30;
+      font-weight: 650;
+    }
+
+    .mini-card ul {
+      margin: 0;
+      padding-left: 5.2mm;
+      color: var(--soft);
+      font-size: 4.35mm;
+      line-height: 1.27;
+      font-weight: 650;
+    }
+
+    .mini-card li + li { margin-top: 1.9mm; }
+
+    .mapping {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 3.95mm;
+      line-height: 1.18;
+      font-weight: 650;
+    }
+
+    .mapping td {
+      padding: 1.9mm 1.3mm;
+      border-bottom: 0.25mm solid #e2e8f0;
+      color: var(--soft);
+      vertical-align: top;
+    }
+
+    .mapping td:first-child {
+      color: var(--ink);
+      font-weight: 900;
+      width: 32%;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10mm;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 9.2mm;
+      line-height: 1.08;
+      font-weight: 950;
+      letter-spacing: 0;
+    }
+
+    .section-kicker {
+      color: var(--teal);
+      font-size: 4.9mm;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .figure-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      min-height: 0;
+    }
+
+    .figure-frame {
+      min-height: 0;
+      display: grid;
+      place-items: center;
+      background: #f8fafc;
+      border: 0.25mm solid #e2e8f0;
+    }
+
+    .caption {
+      margin: 0;
+      color: var(--soft);
+      font-size: 4.55mm;
+      line-height: 1.23;
+      font-weight: 620;
+    }
+
+    .bottom {
+      display: grid;
+      grid-template-columns: 424mm 456mm 1fr;
+      gap: 10mm;
+      min-height: 0;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.90);
+      border-top: 1.6mm solid var(--teal);
+      box-shadow: 0 2mm 9mm rgba(16, 24, 40, 0.06);
+      padding: 6.2mm 6.8mm;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 4mm;
+    }
+
+    .panel.gold { border-top-color: var(--gold); }
+    .panel.blue { border-top-color: var(--blue); }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 8.4mm;
+      line-height: 1.08;
+      font-weight: 950;
+    }
+
+    .method-img {
+      width: 100%;
+      height: 205mm;
+      object-fit: contain;
+      display: block;
+    }
+
+    .method-text,
+    .takeaway p,
+    .results-note {
+      margin: 0;
+      color: var(--soft);
+      font-size: 4.25mm;
+      line-height: 1.29;
+      font-weight: 620;
+    }
+
+    .results {
+      grid-template-rows: auto auto auto auto auto;
+    }
+
+    .trend-box {
+      background: #f8fafc;
+      border: 0.35mm solid #dbe4ee;
+      padding: 4.2mm 4.6mm;
+      display: grid;
+      gap: 2.2mm;
+    }
+
+    .trend-box h3 {
+      margin: 0;
+      font-size: 4.55mm;
+      line-height: 1.08;
+      font-weight: 950;
+    }
+
+    .trend-row {
+      display: grid;
+      grid-template-columns: 45mm 1fr auto;
+      gap: 3mm;
+      align-items: center;
+      color: var(--soft);
+      font-size: 3.7mm;
+      line-height: 1.1;
+      font-weight: 680;
+    }
+
+    .trend-line {
+      height: 3.2mm;
+      border-radius: 2mm;
+      background: linear-gradient(90deg, #8ceacb 0%, #8ceacb 34%, #f7c46c 35%, #f7c46c 66%, #f59e0b 67%, #f59e0b 100%);
+    }
+
+    .trend-line.flat {
+      background: linear-gradient(90deg, #8ceacb 0%, #8ceacb 100%);
+    }
+
+    .callouts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+    }
+
+    .callout {
+      background: var(--night);
+      color: white;
+      padding: 5mm 5.2mm;
+      min-height: 42mm;
+      display: grid;
+      align-content: center;
+    }
+
+    .callout.gold {
+      background: #fff8ed;
+      color: var(--ink);
+      border: 0.45mm solid #f6c882;
+    }
+
+    .callout strong {
+      display: block;
+      font-size: 11.4mm;
+      line-height: 0.95;
+      font-weight: 950;
+      color: #8ceacb;
+    }
+
+    .callout.gold strong { color: var(--gold); }
+
+    .callout span {
+      display: block;
+      margin-top: 2mm;
+      font-size: 3.8mm;
+      line-height: 1.18;
+      font-weight: 760;
+      color: #d7e1e8;
+    }
+
+    .callout.gold span { color: var(--soft); }
+
+    table {
+      width: 100%;
+      height: auto;
+      align-self: start;
+      border-collapse: collapse;
+      font-size: 3.85mm;
+      line-height: 1.13;
+      font-weight: 650;
+    }
+
+    thead th {
+      background: #eef2f6;
+      color: var(--ink);
+      padding: 2.5mm 2.2mm;
+      text-align: right;
+      border-bottom: 0.45mm solid #cbd5e1;
+      font-size: 3.45mm;
+      text-transform: uppercase;
+    }
+
+    thead th:first-child,
+    tbody td:first-child { text-align: left; }
+
+    tbody td {
+      padding: 2.45mm 2.2mm;
+      border-bottom: 0.28mm solid #e2e8f0;
+      text-align: right;
+      color: var(--soft);
+      white-space: nowrap;
+    }
+
+    tbody tr.robust td:first-child { color: var(--teal); font-weight: 900; }
+    tbody tr.baseline td:first-child { color: var(--red); font-weight: 900; }
+
+    .tiny {
+      color: var(--muted);
+      font-size: 3.25mm;
+      line-height: 1.22;
+      font-weight: 620;
+    }
+
+    .stage-map {
+      display: grid;
+      gap: 4mm;
+      align-content: start;
+    }
+
+    .stage-row {
+      display: grid;
+      grid-template-columns: 28mm 1fr;
+      gap: 4mm;
+      padding: 4mm 0;
+      border-bottom: 0.32mm solid #e1e8ee;
+    }
+
+    .stage-id {
+      width: 20mm;
+      height: 20mm;
+      display: grid;
+      place-items: center;
+      background: var(--mint);
+      color: var(--teal);
+      border: 0.45mm solid #9bd9d3;
+      border-radius: 50%;
+      font-size: 6mm;
+      font-weight: 950;
+    }
+
+    .stage-row:nth-child(3) .stage-id { background: #fff4e2; color: var(--gold); border-color: #f3c27b; }
+    .stage-row:nth-child(4) .stage-id { background: #ecfdf5; color: var(--green); border-color: #86efac; }
+
+    .stage-row b {
+      display: block;
+      font-size: 4.4mm;
+      line-height: 1.05;
+      color: var(--ink);
+      font-weight: 950;
+    }
+
+    .stage-row span {
+      display: block;
+      margin-top: 1.4mm;
+      font-size: 3.65mm;
+      line-height: 1.22;
+      color: var(--soft);
+      font-weight: 620;
+    }
+
+    .takeaway {
+      background: #111f2a;
+      color: white;
+      padding: 5mm 5.5mm;
+      margin-top: 2mm;
+    }
+
+    .takeaway p {
+      color: #e9f2f5;
+      font-size: 4.1mm;
+    }
+
+    footer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14mm;
+      align-items: end;
+      color: var(--muted);
+      font-size: 3.25mm;
+      line-height: 1.25;
+      font-weight: 620;
+      border-top: 0.35mm solid #cbd5e1;
+      padding-top: 3.5mm;
+    }
+
+    .refs {
+      max-width: 900mm;
+    }
+
+    .qr-placeholder {
+      min-width: 74mm;
+      text-align: right;
+      color: var(--soft);
+      font-weight: 800;
+    }
+  </style>
+  <link rel="stylesheet" href="portrait.css">
+</head>
+<body>
+  <main class="poster">
+    <div class="sheet">
+      <header>
+        <section>
+          <span class="tag">DECISION ML COURSE PROJECT · HUMANOIDVERSE / GENESIS / PPO</span>
+          <h1>Stable Arm-Swing Humanoid Locomotion under Upper-Body Perturbations</h1>
+          <p class="subtitle">
+            A staged reward-routing curriculum preserves full-body walking, introduces coordinated shoulder-pitch arm swing, and evaluates recovery under torso, shoulder, and elbow action pulses.
+          </p>
+          <p class="authors">Course Project Team · H1 Humanoid · 19DoF full-body control · Headless evaluation in Genesis</p>
+        </section>
+
+        <aside class="claim">
+          <div>
+            <h2>Robust walking is learned without freezing upper-body motion.</h2>
+            <p>The final policy survives strong upper-body perturbations while retaining visible shoulder swing and forward command tracking.</p>
+          </div>
+          <div></div>
+          <div class="mini-stats">
+            <div><strong>19</strong><span>controlled<br>DoF</span></div>
+            <div><strong>32</strong><span>parallel<br>envs</span></div>
+            <div><strong>20s</strong><span>eval<br>horizon</span></div>
+            <div><strong>0</strong><span>falls at<br>amp2</span></div>
+          </div>
+        </aside>
+      </header>
+
+      <section class="band evidence">
+        <div class="section-head">
+          <h2 class="section-title">Dynamic Evidence: from Locked Upper Body to Perturbation Recovery</h2>
+          <span class="section-kicker">Figure 1 · temporal rollouts</span>
+        </div>
+        <div class="evidence-body">
+          <aside class="evidence-aside">
+            <div class="mini-card">
+              <h3>Problem formulation</h3>
+              <p>
+                Once the upper body is unlocked, humanoid locomotion is no longer only a lower-body tracking problem. Torso, shoulder, and elbow actions perturb angular momentum, contact timing, and posture, so a naive arm-swing reward can degrade the base gait.
+              </p>
+            </div>
+            <div class="mini-card gold">
+              <h3>Contributions</h3>
+              <ul>
+                <li>Full-body H1 control in a 19DoF action space.</li>
+                <li>Command-routed reward families that protect walking before arm shaping.</li>
+                <li>Upper-body action-pulse evaluation on torso, shoulder, and elbow channels.</li>
+                <li>Qualitative temporal evidence paired with finite-horizon metrics.</li>
+              </ul>
+            </div>
+            <div class="mini-card blue">
+              <h3>Task-to-benchmark mapping</h3>
+              <table class="mapping" aria-label="Course requirement mapping">
+                <tbody>
+                  <tr><td>Forward locomotion</td><td>0.6 m/s command tracking under stable gait.</td></tr>
+                  <tr><td>Upper body motion</td><td>Visible shoulder-pitch swing synchronized with walking.</td></tr>
+                  <tr><td>Robustness</td><td>Recovery after held upper-body action offsets.</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mini-card">
+              <h3>Design principle</h3>
+              <p>
+                Locomotion is protected before expressiveness is added. Command-derived masks activate standing, walking, and straight-walk reward terms only in compatible regimes.
+              </p>
+            </div>
+          </aside>
+
+          <div class="figure-frame">
+            <img class="figure-img" src="assets/figure1_temporal_montage.png" alt="Three temporal strips showing locked-upper-body walking, coordinated arm swing, and recovery from an upper-body perturbation.">
+          </div>
+
+          <aside class="evidence-aside">
+            <div class="mini-card blue">
+              <h3>Evaluation protocol</h3>
+              <p>
+                We evaluate 32 parallel H1 humanoids for a 20 s horizon. Upper-body action pulses are applied to torso, shoulder, and elbow channels while the forward command remains fixed at 0.6 m/s.
+              </p>
+            </div>
+            <div class="mini-card">
+              <h3>Metrics reported</h3>
+              <p>
+                Survival counts environments without non-timeout resets. Tracking error measures forward velocity deviation. Max tilt uses the projected-gravity tilt proxy and exposes perturbation-induced posture excursions.
+              </p>
+            </div>
+            <div class="mini-card gold">
+              <h3>Result interpretation</h3>
+              <p>
+                Recovery success is not used as the headline baseline comparison because a policy may briefly satisfy the recovery criterion after some pulses while still repeatedly resetting. Survival, falls, and max tilt are more decisive.
+              </p>
+            </div>
+            <div class="mini-card">
+              <h3>Reading the rows</h3>
+              <p>
+                Row A verifies the stable walking foundation. Row B shows visible gait-synchronized arm swing. Row C shows a perturbed upper body returning to forward walking.
+              </p>
+            </div>
+          </aside>
+        </div>
+        <p class="caption">
+          Temporal strips compare stable locked-upper-body walking, gait-synchronized arm swing, and recovery after an injected upper-body action pulse. The qualitative claim is temporal: the robot continues walking while upper-body behavior changes from constrained, to coordinated, to externally perturbed.
+        </p>
+      </section>
+
+      <section class="bottom">
+        <article class="panel">
+          <h2>Method: Staged Reward Routing</h2>
+          <img class="method-img" src="assets/staged_reward_routing.png" alt="Staged reward routing method diagram.">
+          <p class="method-text">
+            The controller is trained in the full 19DoF H1 action space. Stable locomotion is protected first; command masks then activate stand, walk, and straight-walk reward families so arm-swing objectives appear mainly when they are compatible with forward walking.
+          </p>
+        </article>
+
+        <article class="panel gold results">
+          <h2>Quantitative Robustness under Upper-Body Pulses</h2>
+          <div class="callouts">
+            <div class="callout">
+              <strong>100%</strong>
+              <span>survival at amp = 2.0 across 32 environments</span>
+            </div>
+            <div class="callout gold">
+              <strong>0 vs. 95</strong>
+              <span>falls: robust policy vs. arm-swing baseline under amp2</span>
+            </div>
+          </div>
+
+          <table aria-label="Finite-horizon perturbation evaluation">
+            <thead>
+              <tr>
+                <th>Policy / setting</th>
+                <th>Amp</th>
+                <th>Survival</th>
+                <th>Mean time</th>
+                <th>Falls</th>
+                <th>Track err.</th>
+                <th>Max tilt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="robust">
+                <td>Robust policy</td><td>0.0</td><td>100%</td><td>20.00s</td><td>0</td><td>0.0228</td><td>4.67&deg;</td>
+              </tr>
+              <tr class="robust">
+                <td>Robust policy</td><td>1.0</td><td>100%</td><td>20.00s</td><td>0</td><td>0.0225</td><td>7.81&deg;</td>
+              </tr>
+              <tr class="robust">
+                <td>Robust policy</td><td>2.0</td><td>100%</td><td>20.00s</td><td>0</td><td>0.0245</td><td>9.12&deg;</td>
+              </tr>
+              <tr class="baseline">
+                <td>Arm-swing baseline</td><td>2.0</td><td>0%</td><td>5.48s</td><td>95</td><td>0.1401</td><td>89.93&deg;</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="trend-box">
+            <h3>Robust policy under increasing perturbation amplitude</h3>
+            <div class="trend-row">
+              <span>Survival</span>
+              <div class="trend-line flat"></div>
+              <span>100% to 100% to 100%</span>
+            </div>
+            <div class="trend-row">
+              <span>Tracking error</span>
+              <div class="trend-line"></div>
+              <span>0.0228 to 0.0245 m/s</span>
+            </div>
+            <div class="trend-row">
+              <span>Max tilt</span>
+              <div class="trend-line"></div>
+              <span>4.67&deg; to 9.12&deg;</span>
+            </div>
+          </div>
+
+          <p class="results-note">
+            The amp0 run uses the same perturbation scheduling with zero magnitude. At amp2, the robust policy retains arm motion: shoulder-pitch swing amplitude 0.2536 rad and elbow sagittal separation 0.1165 m, so robustness is not obtained by simply freezing the upper body.
+          </p>
+        </article>
+
+        <article class="panel blue">
+          <h2>Experimental Story</h2>
+          <div class="stage-map">
+            <div class="stage-row">
+              <div class="stage-id">1</div>
+              <div><b>Locomotion foundation</b><span>Full-body H1 walks forward while the upper body is constrained to preserve a reliable gait.</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="stage-id">2</div>
+              <div><b>Command-routed preparation</b><span>Stand, walk, and straight-walk masks reduce interference between posture, gait, and arm objectives.</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="stage-id">3</div>
+              <div><b>Coordinated arm swing</b><span>Shoulder-pitch phase and endpoint-sagittal terms make the upper body visibly participate in walking.</span></div>
+            </div>
+            <div class="stage-row">
+              <div class="stage-id">R</div>
+              <div><b>Perturbation-robust policy</b><span>Held action offsets on torso, shoulder, and elbow channels test whether the gait recovers.</span></div>
+            </div>
+          </div>
+          <div class="takeaway">
+            <p>
+              Takeaway: unlocking upper-body joints is not enough. Stable arm-swing locomotion emerges when walking is protected first, arm coordination is routed by command regime, and robustness is evaluated with explicit upper-body disturbances.
+            </p>
+          </div>
+          <div class="mini-card gold">
+            <h3>Limitations</h3>
+            <p>
+              Evidence is simulation-only and short-horizon. Upper-body naturalness is shaped by hand-designed phase and amplitude rewards rather than human motion priors. Future work should add angular-momentum analysis, energy cost, longer horizons, and cleaner camera evaluation.
+            </p>
+          </div>
+          <div class="mini-card">
+            <h3>Conclusion</h3>
+            <p>
+              The final controller demonstrates stable forward walking, visible arm swing, and bounded recovery behavior under explicit upper-body disturbances, forming a compact paper-style story from curriculum design to quantitative robustness.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <footer>
+        <div class="refs">
+          Simulation-only course evaluation. Key references and context: HumanoidVerse, Genesis, PPO-based humanoid locomotion, gait-conditioned reward routing, Humanoid-Gym, DeepMimic, and adversarial/motion-prior humanoid control literature. Quantitative values are finite-horizon server evaluations, not sim-to-real claims.
+        </div>
+        <div class="qr-placeholder">Final poster HTML · PDF · PNG generated locally</div>
+      </footer>
+    </div>
+  </main>
+</body>
+</html>
