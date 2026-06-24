@@ -58,3 +58,13 @@ hgen/
 .history
 .codex
 .agents
+paper/*
+!paper/*.pdf
+!paper/*.tex
+!paper/*.sty
+
+# *.aux
+# *.fdb_latexmk
+# *.out
+# *.fls
+# *.xdv
