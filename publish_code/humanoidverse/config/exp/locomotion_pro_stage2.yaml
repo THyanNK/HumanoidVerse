@@ -1,0 +1,7 @@
+# @package _global_
+
+defaults:
+  - /exp/locomotion_pro_stage1
+  - _self_
+
+experiment_name: H1Pro_stage2_arm_swing_Genesis

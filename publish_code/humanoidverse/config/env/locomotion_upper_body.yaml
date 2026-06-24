@@ -1,0 +1,10 @@
+# @package _global_
+
+defaults:
+  - locomotion
+  - _self_
+
+env:
+  _target_: humanoidverse.envs.locomotion.locomotion_upper_body.LeggedRobotLocomotionUpperBody
+
+log_task_name: locomotion_upper_body

@@ -1,0 +1,30 @@
+# @package _global_
+
+defaults:
+  - NO_domain_rand
+  - _self_
+
+domain_rand:
+  # Stage 3 disturbance: inject held random action offsets only on upper-body DOFs.
+  # Lower-body policy actions are left untouched.
+  randomize_upper_body_actions: True
+  upper_body_random_action_dof_names: [
+    "torso_joint",
+    "left_shoulder_pitch_joint", "left_shoulder_roll_joint", "left_shoulder_yaw_joint", "left_elbow_joint",
+    "right_shoulder_pitch_joint", "right_shoulder_roll_joint", "right_shoulder_yaw_joint", "right_elbow_joint"
+  ]
+  upper_body_random_action_dof_scales: [
+    0.35,
+    1.0, 1.0, 1.0, 1.0,
+    1.0, 1.0, 1.0, 1.0
+  ]
+  # Pulse mode makes the disturbance visually separable: hit the upper body,
+  # then leave a clean recovery window.
+  upper_body_random_action_mode: pulse
+  upper_body_random_action_amp: 1.00
+  upper_body_random_action_eval_amp: 2.00
+  upper_body_random_action_resample_s: [0.20, 0.50]
+  upper_body_random_action_start_delay_s: [1.00, 1.50]
+  upper_body_random_action_active_s: [0.35, 0.70]
+  upper_body_random_action_recovery_s: [1.20, 2.20]
+  upper_body_random_action_apply_during_eval: True

@@ -1,0 +1,18 @@
+# @package _global_
+
+defaults:
+  - /rewards/loco/reward_h1_locomotion_upper_body_stage2
+  - _self_
+
+rewards:
+  set_reward: H1UpperBodyStage3RandomUpperActions
+  set_reward_date: 20260622
+  reward_scales:
+      # Preserve the stage2 arm-swing objective while making lower-body balance
+      # and straight walking more important under upper-body action noise.
+      tracking_lin_vel_x: 2.4
+      tracking_heading: 1.2
+      penalty_orientation: -1.5
+      penalty_heading_error: -2.5
+      penalty_lateral_vel: -1.5
+      penalty_low_forward_speed: -2.5
