@@ -56,3 +56,5 @@ __pycache__
 *.tar.gz
 hgen/
 .history
+.codex
+.agents
