@@ -32,12 +32,12 @@ Stable Arm-Swing Humanoid Locomotion under Upper-Body Perturbations
 
 ### Key Numbers
 
-| Quantity | Value |
-| --- | --- |
-| Controllable joints | 19DoF H1 full-body action space |
-| Main stages visualized | Stage1, Stage6, Stage7, Stage8 |
-| Evaluation command | 0.6 m/s forward walking |
-| Perturbation protocol | Held random action offsets on torso, shoulders, elbows |
+| Quantity               | Value                                                  |
+| ---------------------- | ------------------------------------------------------ |
+| Controllable joints    | 19DoF H1 full-body action space                        |
+| Main stages visualized | Stage1, Stage6, Stage7, Stage8                         |
+| Evaluation command     | 0.6 m/s forward walking                                |
+| Perturbation protocol  | Held random action offsets on torso, shoulders, elbows |
 
 When server metrics arrive, replace the last two cells with exact values such as evaluation horizon, number of environments, and perturbation amplitudes.
 
@@ -60,12 +60,12 @@ This is one of the few places where bullets are appropriate because conference p
 
 The original assignment asks for humanoid locomotion with unlocked upper-body motion in simulation. Our implementation maps this requirement into a full-body stability benchmark: Stage1 verifies that the 19DoF model can preserve stable walking with the upper body constrained; Stage6 introduces command-conditioned reward routing; Stage7 produces visible arm swing; Stage8 tests robustness by injecting upper-body action offsets during evaluation. This creates a coherent progression from course deliverable to paper-style experimental narrative.
 
-| Course requirement | Paper-style interpretation | Evidence source |
-| --- | --- | --- |
-| 前进一定距离 | Forward command tracking under stable locomotion | Stage1 / Stage7 videos |
-| 上半身解锁并同步运动 | Gait-synchronized shoulder-pitch swing | Stage7 temporal strip |
-| 仿真实验 | Genesis rollout videos and finite-horizon eval | Video folder and metrics |
-| 鲁棒性加分 | Recovery under upper-body action pulses | Stage8 disturbance videos and metrics |
+| Course requirement   | Paper-style interpretation                       | Evidence source                       |
+| -------------------- | ------------------------------------------------ | ------------------------------------- |
+| 前进一定距离         | Forward command tracking under stable locomotion | Stage1 / Stage7 videos                |
+| 上半身解锁并同步运动 | Gait-synchronized shoulder-pitch swing           | Stage7 temporal strip                 |
+| 仿真实验             | Genesis rollout videos and finite-horizon eval   | Video folder and metrics              |
+| 鲁棒性加分           | Recovery under upper-body action pulses          | Stage8 disturbance videos and metrics |
 
 ## 5. Main Figure
 
@@ -108,10 +108,10 @@ This paragraph can appear directly under Figure 2. It should be short enough tha
 After the server runs finish, this table should become the main quantitative result. It should compare the same policy under different upper-body action-pulse amplitudes, preferably `amp=0.0`, `amp=1.0`, and `amp=2.0`. If the strong perturbation degrades performance, that is still useful as long as the wording calls it a stress test rather than a perfect robustness claim.
 
 | Eval amp | Survival ↑ | Tracking error ↓ | Max tilt ↓ | Recovery ↑ | Recovery time ↓ |
-| ---: | ---: | ---: | ---: | ---: | ---: |
-| 0.0 | TBD | TBD | TBD | N/A | N/A |
-| 1.0 | TBD | TBD | TBD | TBD | TBD |
-| 2.0 | TBD | TBD | TBD | TBD | TBD |
+| -------: | ----------: | ----------------: | ----------: | ----------: | ---------------: |
+|      0.0 |         TBD |               TBD |         TBD |         N/A |              N/A |
+|      1.0 |         TBD |               TBD |         TBD |         TBD |              TBD |
+|      2.0 |         TBD |               TBD |         TBD |         TBD |              TBD |
 
 Metric explanation for poster text:
 
@@ -127,13 +127,13 @@ Finite-horizon evaluation under increasing upper-body action-pulse amplitudes. A
 
 This table replaces a long ablation paragraph. It should make the experimental progression easy to scan while still sounding like a research narrative.
 
-| Stage | Upper-body treatment | Experimental role | Evidence |
-| --- | --- | --- | --- |
-| 10DoF baseline | Upper body unavailable or fixed | Lower-body locomotion reference | Baseline videos |
-| 19DoF Stage1 | Upper body action-locked | Verify stable full-body model setup | `stage1_1000_只有走路.mp4` |
-| Stage6 | Shoulder pitch lightly routed | Add command-conditioned gait rewards without breaking walking | Training/eval logs |
-| Stage7 | Visible arm swing | Demonstrate gait-synchronized upper-body motion | `stage7_3200_走路摆臂.mp4` |
-| Stage8 | Random upper-body action pulses | Stress-test recovery under torso/arm disturbances | `扰动1/2.mp4` and metrics |
+| Stage          | Upper-body treatment            | Experimental role                                             | Evidence                     |
+| -------------- | ------------------------------- | ------------------------------------------------------------- | ---------------------------- |
+| 10DoF baseline | Upper body unavailable or fixed | Lower-body locomotion reference                               | Baseline videos              |
+| 19DoF Stage1   | Upper body action-locked        | Verify stable full-body model setup                           | `stage1_1000_只有走路.mp4` |
+| Stage6         | Shoulder pitch lightly routed   | Add command-conditioned gait rewards without breaking walking | Training/eval logs           |
+| Stage7         | Visible arm swing               | Demonstrate gait-synchronized upper-body motion               | `stage7_3200_走路摆臂.mp4` |
+| Stage8         | Random upper-body action pulses | Stress-test recovery under torso/arm disturbances             | `扰动1/2.mp4` and metrics  |
 
 Suggested caption:
 
@@ -179,4 +179,3 @@ Videos and metrics are generated from Genesis evaluations of the trained H1 poli
 ## 16. Review Questions
 
 The next review should decide whether the Chinese title should remain primary or whether the English title should lead for a stronger conference-poster feel. We also need to decide whether the center figure should stay as three temporal rows or reserve one row for a velocity-tracking plot after the server metrics arrive. The final robustness wording should be chosen after checking whether `amp=2.0` remains stable or should be described as a stress-test regime.
-

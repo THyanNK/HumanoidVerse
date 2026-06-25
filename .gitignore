@@ -61,6 +61,13 @@ hgen/
 paper/*
 !paper/*.pdf
 !paper/*.tex
+!paper/*.bib
+!paper/*.png
+!paper/*.jpg
+!paper/*.jpeg
+!paper/*.py
+!paper/*.html
+!paper/*.mjs
 !paper/*.sty
 
 # *.aux

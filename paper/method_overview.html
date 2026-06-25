@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Method Overview</title>
+  <style>
+    :root {
+      --paper: #f7fafc;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #cbd5e1;
+      --blue: #2563eb;
+      --teal: #0f766e;
+      --gold: #b45309;
+      --red: #c2410c;
+      --slate: #334155;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      min-height: 100%;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      display: block;
+      overflow: hidden;
+    }
+
+    @page {
+      size: 17in 10in;
+      margin: 0;
+    }
+
+    .figure-shell {
+      width: 1700px;
+      height: 1000px;
+      background: var(--paper);
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .kicker {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      fill: var(--teal);
+    }
+
+    .title {
+      font-size: 30px;
+      font-weight: 700;
+      fill: var(--ink);
+    }
+
+    .caption {
+      font-size: 18px;
+      font-weight: 400;
+      fill: var(--muted);
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      fill: var(--ink);
+    }
+
+    .section-title.dark { fill: #f8fafc; }
+
+    .body {
+      font-size: 15px;
+      font-weight: 400;
+      fill: var(--muted);
+    }
+
+    .body.dark { fill: #dbeafe; }
+
+    .small {
+      font-size: 12px;
+      font-weight: 400;
+      fill: var(--muted);
+    }
+
+    .chip {
+      font-size: 13px;
+      font-weight: 600;
+      fill: var(--slate);
+    }
+
+    .no {
+      font-size: 14px;
+      font-weight: 700;
+      fill: #fff;
+    }
+
+    .mono {
+      font-family: "SFMono-Regular", "Menlo", "Consolas", monospace;
+    }
+
+    .formula {
+      font-family: "Times New Roman", Times, serif;
+      font-size: 30px;
+      font-weight: 500;
+      fill: var(--ink);
+    }
+
+    .formula-sub {
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .formula-note {
+      font-size: 15px;
+      font-weight: 400;
+      fill: var(--muted);
+    }
+
+    .arrow-label {
+      font-size: 16px;
+      font-weight: 600;
+      fill: var(--slate);
+    }
+  </style>
+</head>
+<body>
+  <main class="figure-shell" aria-label="Method overview figure">
+    <svg viewBox="0 0 1700 1000" role="img" aria-labelledby="fig-title fig-desc">
+      <title id="fig-title">Method overview for staged reward curriculum</title>
+      <desc id="fig-desc">PPO training loop in Genesis for a full-body Unitree H1 policy, followed by a three-stage reward curriculum.</desc>
+
+      <defs>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+          <feDropShadow dx="0" dy="9" stdDeviation="12" flood-color="#0f172a" flood-opacity="0.13" />
+        </filter>
+
+        <marker id="arrow" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+          <path d="M 0 1 L 12 7 L 0 13 z" fill="#64748b" />
+        </marker>
+        <marker id="arrowBlue" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+          <path d="M 0 1 L 12 7 L 0 13 z" fill="#2563eb" />
+        </marker>
+        <marker id="arrowTeal" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+          <path d="M 0 1 L 12 7 L 0 13 z" fill="#0f766e" />
+        </marker>
+        <marker id="arrowRed" markerWidth="14" markerHeight="14" refX="11" refY="7" orient="auto" markerUnits="strokeWidth">
+          <path d="M 0 1 L 12 7 L 0 13 z" fill="#c2410c" />
+        </marker>
+
+        <linearGradient id="h1Grad" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#16324f" />
+          <stop offset="100%" stop-color="#0f172a" />
+        </linearGradient>
+
+        <linearGradient id="loopGrad" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="100%" stop-color="#f8fafc" />
+        </linearGradient>
+
+        <pattern id="dotGrid" width="22" height="22" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1.2" fill="#cbd5e1" opacity="0.50" />
+        </pattern>
+        <clipPath id="h1CardClip">
+          <rect x="58" y="218" width="254" height="282" rx="20" />
+        </clipPath>
+      </defs>
+
+      <rect width="1700" height="1000" fill="#f7fafc" />
+      <rect width="1700" height="1000" fill="url(#dotGrid)" opacity="0.52" />
+
+      <text x="70" y="76" class="kicker">Method Overview</text>
+      <text x="70" y="119" class="title">Staged PPO Curriculum for Full-Body H1 Arm-Swing Locomotion</text>
+      <text x="70" y="154" class="caption">A single 19-DoF policy is trained in Genesis, then shaped through staged reward routing and upper-body recovery.</text>
+
+      <g filter="url(#shadow)">
+        <rect x="58" y="218" width="254" height="282" rx="20" fill="url(#h1Grad)" />
+        <text x="88" y="272" class="section-title dark">Unitree H1</text>
+        <text x="88" y="309" class="body dark">full-body humanoid</text>
+        <text x="88" y="338" class="body dark">19-DoF action space</text>
+        <text x="88" y="367" class="body dark">upper-body channels</text>
+
+        <g clip-path="url(#h1CardClip)">
+          <ellipse cx="236" cy="424" rx="58" ry="84" fill="#dbeafe" opacity="0.10" />
+          <image href="unitree_h1_cutout.png" x="192" y="348" width="86" height="149"
+            preserveAspectRatio="xMidYMid meet" opacity="0.64"
+            style="filter: drop-shadow(0 12px 20px rgba(15, 23, 42, 0.35));" />
+        </g>
+        <rect x="88" y="444" width="194" height="32" rx="16" fill="#1e40af" opacity="0.82" />
+        <text x="124" y="466" class="body dark">joint targets</text>
+      </g>
+
+      <path d="M 330 360 L 383 360" stroke="#64748b" stroke-width="5" fill="none" marker-end="url(#arrow)" />
+
+      <g filter="url(#shadow)">
+        <rect x="398" y="208" width="1240" height="304" rx="24" fill="url(#loopGrad)" stroke="#d6e2ee" stroke-width="3" />
+        <text x="430" y="260" class="section-title">PPO reinforcement learning loop</text>
+        <text x="430" y="293" class="body">Actor-critic policy acts in many simulated H1 environments; observations and rewards update the same policy.</text>
+
+        <rect x="438" y="338" width="242" height="106" rx="15" fill="#eff6ff" stroke="#2563eb" stroke-width="3" />
+        <rect x="452" y="350" width="10" height="82" fill="#2563eb" opacity="0.85" />
+        <text x="480" y="372" class="section-title">Policy π<tspan baseline-shift="sub" font-size="14">θ</tspan></text>
+        <text x="480" y="405" class="body">MLP actor-critic</text>
+        <text x="480" y="429" class="body">actor-critic update</text>
+
+        <path d="M 694 391 L 764 391" stroke="#2563eb" stroke-width="5" fill="none" marker-end="url(#arrowBlue)" />
+
+        <rect x="784" y="338" width="276" height="106" rx="15" fill="#ecfdf5" stroke="#0f766e" stroke-width="3" />
+        <rect x="798" y="350" width="10" height="82" fill="#0f766e" opacity="0.85" />
+        <text x="827" y="372" class="section-title">Genesis simulator</text>
+        <text x="827" y="405" class="body">32 parallel H1 envs</text>
+        <text x="827" y="429" class="body">robot dynamics + contacts</text>
+
+        <path d="M 1074 391 L 1144 391" stroke="#0f766e" stroke-width="5" fill="none" marker-end="url(#arrowTeal)" />
+
+        <rect x="1164" y="338" width="310" height="106" rx="15" fill="#fffbeb" stroke="#b45309" stroke-width="3" />
+        <rect x="1178" y="350" width="10" height="82" fill="#b45309" opacity="0.86" />
+        <text x="1206" y="372" class="section-title">Reward router</text>
+        <text x="1206" y="405" class="body">shared locomotion terms</text>
+        <text x="1206" y="429" class="body">command masks + stage terms</text>
+
+        <path d="M 1324 448 C 1185 502, 730 502, 438 455" stroke="#475569" stroke-width="3" fill="none" opacity="0.92" marker-end="url(#arrow)" />
+        <rect x="810" y="474" width="180" height="28" rx="14" fill="#ffffff" opacity="0.90" />
+        <text x="900" y="493" text-anchor="middle" class="arrow-label">PPO update</text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="112" y="568" width="1476" height="220" rx="22" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+        <text x="151" y="626" class="section-title">Three-stage reward curriculum</text>
+        <text x="151" y="658" class="body">Each stage keeps the same full-body policy but changes which upper-body objectives are active.</text>
+
+        <g>
+          <rect x="152" y="684" width="335" height="74" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2" />
+          <circle cx="183" cy="721" r="17" fill="#2563eb" />
+          <text x="178" y="727" class="no">I</text>
+          <text x="213" y="716" class="section-title">Stable walking</text>
+          <text x="213" y="746" class="body">upper body constrained · stable gait</text>
+        </g>
+
+        <path d="M 505 721 L 561 721" stroke="#64748b" stroke-width="5" fill="none" marker-end="url(#arrow)" />
+
+        <g>
+          <rect x="580" y="684" width="388" height="74" rx="14" fill="#ecfdf5" stroke="#0f766e" stroke-width="2" />
+          <circle cx="611" cy="721" r="17" fill="#0f766e" />
+          <text x="605" y="727" class="no">II</text>
+          <text x="641" y="716" class="section-title">Routed arm swing</text>
+          <text x="641" y="746" class="body">straight-walk masks activate swing</text>
+        </g>
+
+        <path d="M 986 721 L 1042 721" stroke="#64748b" stroke-width="5" fill="none" marker-end="url(#arrow)" />
+
+        <g>
+          <rect x="1060" y="684" width="382" height="74" rx="14" fill="#fff7ed" stroke="#c2410c" stroke-width="2" />
+          <circle cx="1091" cy="721" r="17" fill="#c2410c" />
+          <text x="1085" y="727" class="no">III</text>
+          <text x="1122" y="716" class="section-title">Perturbation recovery</text>
+          <text x="1122" y="746" class="body">pulse offsets on upper body</text>
+        </g>
+
+        <path d="M 1330 662 C 1375 622, 1434 626, 1472 666" stroke="#c2410c" stroke-width="5" fill="none" stroke-linecap="round" />
+        <path d="M 1330 662 C 1375 702, 1434 698, 1472 666" stroke="#c2410c" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.42" />
+        <circle cx="1327" cy="662" r="8" fill="#c2410c" />
+        <circle cx="1475" cy="666" r="8" fill="#c2410c" />
+        <rect x="1318" y="613" width="176" height="32" rx="16" fill="#ffedd5" />
+        <text x="1340" y="635" class="chip">upper-body pulses</text>
+      </g>
+
+      <g filter="url(#shadow)">
+        <rect x="115" y="825" width="1470" height="110" rx="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+        <text x="153" y="876" class="formula mono">
+          r<tspan class="formula-sub" baseline-shift="sub">t</tspan> =
+          <tspan fill="#2563eb">r<tspan class="formula-sub" baseline-shift="sub">track</tspan> + r<tspan class="formula-sub" baseline-shift="sub">safe</tspan></tspan>
+          + m<tspan class="formula-sub" baseline-shift="sub">stand</tspan> r<tspan class="formula-sub" baseline-shift="sub">stand</tspan>
+          + m<tspan class="formula-sub" baseline-shift="sub">walk</tspan> r<tspan class="formula-sub" baseline-shift="sub">walk</tspan>
+          + <tspan fill="#0f766e">m<tspan class="formula-sub" baseline-shift="sub">straight</tspan> r<tspan class="formula-sub" baseline-shift="sub">swing</tspan></tspan>
+          + <tspan fill="#c2410c">r<tspan class="formula-sub" baseline-shift="sub">robust</tspan></tspan>
+        </text>
+        <line x1="153" y1="905" x2="1548" y2="905" stroke="#e2e8f0" stroke-width="2" />
+        <circle cx="166" cy="920" r="7" fill="#2563eb" />
+        <text x="185" y="927" class="formula-note">shared terms preserve locomotion</text>
+        <circle cx="640" cy="920" r="7" fill="#0f766e" />
+        <text x="659" y="927" class="formula-note">straight-walk routing enables visible arm swing</text>
+        <circle cx="1195" cy="920" r="7" fill="#c2410c" />
+        <text x="1214" y="927" class="formula-note">Stage III trains perturbation recovery</text>
+      </g>
+    </svg>
+  </main>
+</body>
+</html>

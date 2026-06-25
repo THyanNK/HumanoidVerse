@@ -1,4 +1,4 @@
-% !TEX program = pdflatex
+% !TEX program = xelatex
 % !TEX root = staged_reward_paper.tex
 
 \documentclass{article}
@@ -12,7 +12,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[UTF8]{ctex}
+\usepackage[UTF8,fontset=fandol]{ctex}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{booktabs}
@@ -25,7 +25,7 @@
 \usepackage{hyperref}
 \usepackage{url}
 
-\graphicspath{{../output/extra_results/poster/}{output/extra_results/poster/}}
+\graphicspath{{./}}
 \setlist[itemize]{leftmargin=1.5em}
 \setlist[enumerate]{leftmargin=1.8em}
 \newcommand{\relu}[1]{\left[#1\right]_+}
@@ -270,7 +270,7 @@ v_{x,t_k}^{\mathrm{rec}}\ge 0.8 v_x^{\mathrm{cmd}}
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.95\linewidth]{poster3_element_22_quantitative_chart.png}
+  \includegraphics[width=0.95\linewidth]{quantitative_results.png}
   \caption{有限时长扰动评估。最终鲁棒策略在扰动幅度增大到 2.0 时仍保持完整存活率和较低速度误差；未经过扰动鲁棒训练的摆臂策略在相同扰动下出现频繁跌倒。}
   \label{fig:quant}
 \end{figure}
